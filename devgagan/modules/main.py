@@ -56,7 +56,7 @@ async def check_interval(user_id, freecheck):
         cooldown_end = interval_set[user_id]
         if now < cooldown_end:
             remaining_time = (cooldown_end - now).seconds
-            return False, f"Please wait {remaining_time} seconds(s) before sending another link. Alternatively, purchase premium for instant access.\n\n> Hey 👋 You can use /token to use the bot free for 3 hours without any time limit."
+            return False, f"Please wait {remaining_time} seconds(s) before sending another link. Alternatively, purchase premium for instant access.\n\n>"
         else:
             del interval_set[user_id]  # Cooldown expired, remove user from interval set
 
