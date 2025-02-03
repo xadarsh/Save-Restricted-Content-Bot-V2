@@ -223,4 +223,4 @@ async def shellrunner(_, message):
 @app.on_message(filters.command("restart") & filters.user(OWNER_ID))
 async def update(_, message):
     await message.reply("Restarting ... ")
-    os.execl(sys.executable, sys.executable, "-m", "devgagan")
+    os.execl(sys.executable, sys.executable, "-m", "Adarsh")
