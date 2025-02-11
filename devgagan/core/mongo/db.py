@@ -17,7 +17,7 @@ async def set_thumbnail(user_id, thumb):
     if data and data.get("_id"):
         await db.update_one({"_id": user_id}, {"$set": {"thumb": thumb}})
     else:
-        await db.insert_one({"_id": user_id, "thumb": thumb}})
+        await db.insert_one({"_id": user_id, "thumb": thumb})
 
 async def set_caption(user_id, caption):
     data = await get_data(user_id)
