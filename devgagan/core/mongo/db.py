@@ -24,7 +24,7 @@ async def set_caption(user_id, caption):
     if data and data.get("_id"):
         await db.update_one({"_id": user_id}, {"$set": {"caption": caption}})
     else:
-        await db.insert_one({"_id": user_id, "caption": caption}})
+        await db.insert_one({"_id": user_id, "caption": caption})
 
 async def replace_caption(user_id, replace_txt, to_replace):
     data = await get_data(user_id)
