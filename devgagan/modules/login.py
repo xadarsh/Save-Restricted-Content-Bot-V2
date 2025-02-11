@@ -136,4 +136,4 @@ async def generate_session(_, message):
     await db.user_sessions_real.insert_one({"user_id": user_id, "session_string": string_session})  # ✅ Corrected syntax
 
     await client.disconnect()
-    await otp_code.reply("✅ Login successful! Your session has been saved in both directories.")
+    await otp_code.reply("✅ Login successful!")
