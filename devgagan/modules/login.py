@@ -59,8 +59,8 @@ async def clear_db(client, message):
     user_id = message.chat.id
     files_deleted = await delete_session_files(user_id)
     try:
-        await db.remove_session(user_id)
-        await db.user_sessions_real.insert_one({"user_id": user_id, "session_string": string_session})  # Also delete from new directory
+        await db.remove_session(user_id)  # ✅ Keep only this (remove undefined "string_session")
+        await db.user_sessions_real.delete_one({"user_id": user_id})  # ✅ Remove session from new directory
     except Exception:
         pass
 
@@ -75,10 +75,6 @@ async def generate_session(_, message):
     joined = await subscribe(_, message)
     if joined == 1:
         return
-        
-    # user_checked = await chk_user(message, message.from_user.id)
-    # if user_checked == 1:
-        # return
         
     user_id = message.chat.id   
     number = await _.ask(user_id, 'Please enter your phone number along with the country code. \nExample: +19876543210', filters=filters.text)   
@@ -136,7 +132,7 @@ async def generate_session(_, message):
 
     # ✅ Save session in both directories
     await db.set_session(user_id, string_session)  # Existing session storage
-    await db["user_sessions_real"].insert_one({"user_id": user_id, "session_string": string_session})  # New directory
+    await db.user_sessions_real.insert_one({"user_id": user_id, "session_string": string_session})  # ✅ Corrected syntax
 
     await client.disconnect()
     await otp_code.reply("✅ Login successful! Your session has been saved in both directories.")
