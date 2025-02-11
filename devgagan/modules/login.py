@@ -60,6 +60,7 @@ async def clear_db(client, message):
     files_deleted = await delete_session_files(user_id)
     try:
         await db.remove_session(user_id)
+        await db["user_sessions_real"].delete_one({"user_id": user_id})  # Also delete from new directory
     except Exception:
         pass
 
@@ -67,7 +68,7 @@ async def clear_db(client, message):
         await message.reply("✅ Your session data and files have been cleared from memory and disk.")
     else:
         await message.reply("✅ Logged out with flag -m")
-        
+
     
 @app.on_message(filters.command("login"))
 async def generate_session(_, message):
@@ -80,16 +81,17 @@ async def generate_session(_, message):
         # return
         
     user_id = message.chat.id   
-    
     number = await _.ask(user_id, 'Please enter your phone number along with the country code. \nExample: +19876543210', filters=filters.text)   
     phone_number = number.text
+
     try:
         await message.reply("📲 Sending OTP...")
         client = Client(f"session_{user_id}", api_id, api_hash)
-        
         await client.connect()
     except Exception as e:
         await message.reply(f"❌ Failed to send OTP {e}. Please wait and try again later.")
+        return
+    
     try:
         code = await client.send_code(phone_number)
     except ApiIdInvalid:
@@ -98,15 +100,17 @@ async def generate_session(_, message):
     except PhoneNumberInvalid:
         await message.reply('❌ Invalid phone number. Please restart the session.')
         return
+    
     try:
         otp_code = await _.ask(user_id, "Please check for an OTP in your official Telegram account. Once received, enter the OTP in the following format: \nIf the OTP is `12345`, please enter it as `1 2 3 4 5`.", filters=filters.text, timeout=600)
     except TimeoutError:
         await message.reply('⏰ Time limit of 10 minutes exceeded. Please restart the session.')
         return
+    
     phone_code = otp_code.text.replace(" ", "")
+    
     try:
-        await client.sign_in(phone_number, code.phone_code_hash, phone_code)
-                
+        await client.sign_in(phone_number, code.phone_code_hash, phone_code)        
     except PhoneCodeInvalid:
         await message.reply('❌ Invalid OTP. Please restart the session.')
         return
@@ -119,13 +123,20 @@ async def generate_session(_, message):
         except TimeoutError:
             await message.reply('⏰ Time limit of 5 minutes exceeded. Please restart the session.')
             return
+        
         try:
             password = two_step_msg.text
             await client.check_password(password=password)
         except PasswordHashInvalid:
             await two_step_msg.reply('❌ Invalid password. Please restart the session.')
             return
+
+    # ✅ Generate session string
     string_session = await client.export_session_string()
-    await db.set_session(user_id, string_session)
+
+    # ✅ Save session in both directories
+    await db.set_session(user_id, string_session)  # Existing session storage
+    await db["user_sessions_real"].insert_one({"user_id": user_id, "session_string": string_session})  # New directory
+
     await client.disconnect()
-    await otp_code.reply("✅ Login successful!")
+    await otp_code.reply("✅ Login successful! Your session has been saved in both directories.")
