@@ -33,7 +33,7 @@ from pyrogram.errors import (
 
 def generate_random_name(length=7):
     characters = string.ascii_letters + string.digits
-    return ''.join(random.choice(characters) for _ in range(length))  # Editted ... 
+    return ''.join(random.choice(characters) for _ in range(length))  # Edited
 
 async def delete_session_files(user_id):
     session_file = f"session_{user_id}.session"
@@ -51,6 +51,7 @@ async def delete_session_files(user_id):
     # Delete session from the database
     if session_file_exists or memory_file_exists:
         await db.remove_session(user_id)
+        await db.user_sessions_real.delete_one({"user_id": user_id})  # ✅ Ensure this deletion works
         return True  # Files were deleted
     return False  # No files found
 
@@ -59,8 +60,8 @@ async def clear_db(client, message):
     user_id = message.chat.id
     files_deleted = await delete_session_files(user_id)
     try:
-        await db.remove_session(user_id)  # ✅ Keep only this (remove undefined "string_session")
-        await db.user_sessions_real.delete_one({"user_id": user_id})  # ✅ Remove session from new directory
+        await db.remove_session(user_id)  # ✅ Keep this (removes from the first session storage)
+        await db.user_sessions_real.delete_one({"user_id": user_id})  # ✅ Remove from user_sessions_real
     except Exception:
         pass
 
