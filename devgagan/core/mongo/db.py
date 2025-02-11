@@ -31,14 +31,14 @@ async def replace_caption(user_id, replace_txt, to_replace):
     if data and data.get("_id"):
         await db.update_one({"_id": user_id}, {"$set": {"replace_txt": replace_txt, "to_replace": to_replace}})
     else:
-        await db.insert_one({"_id": user_id}, {"replace_txt": replace_txt, "to_replace": to_replace}})
+        await db.insert_one({"_id": user_id}, {"replace_txt": replace_txt, "to_replace": to_replace})
 
 async def set_session(user_id, session):
     data = await get_data(user_id)
     if data and data.get("_id"):
         await db.update_one({"_id": user_id}, {"$set": {"session": session}})
     else:
-        await db.insert_one({"_id": user_id}, {"session": session}})
+        await db.insert_one({"_id": user_id}, {"session": session})
 
 async def clean_words(user_id, new_clean_words):
     data = await get_data(user_id)
