@@ -176,7 +176,7 @@ async def is_session_alive(session_string):
         await userbot.get_me()  # Verifies the session
         await userbot.disconnect()
         return True  # Session is alive
-    except Exception:
+    except Exception as e:
         print(f"Session check error: {e}")  # Log error for debugging
         return False  # Session is dead
 
