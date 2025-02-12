@@ -12,7 +12,7 @@
 # License: MIT License
 # ---------------------------------------------------
 
-from pyrogram import filters, Client
+from pyrogram import filters, Client, idle
 from devgagan import app
 import random
 import os
