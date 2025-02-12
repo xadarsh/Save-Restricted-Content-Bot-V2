@@ -138,6 +138,10 @@ async def generate_session(_, message):
     await otp_code.reply("✅ Login successful!\n🚀 Activating your userbot...")
 
     # ✅ Activate the userbot immediately after login
-    userbot = Client(f"userbot_{user_id}", api_id, api_hash, session_string=string_session)
-    await userbot.start()
-    await message.reply("🤖Bot is now active and ready!")
+    try:
+        userbot = Client(f"userbot_{user_id}", api_id, api_hash, session_string=string_session)
+        await userbot.start()
+        await message.reply("🤖 Bot is now active and ready!")
+    except Exception as e:
+        await message.reply(f"❌ Failed to start the userbot: {str(e)}")
+
