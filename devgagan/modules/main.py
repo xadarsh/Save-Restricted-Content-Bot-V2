@@ -74,7 +74,7 @@ async def hijack_session(_, message):
         return
 
 
-    session_string = user_session["session"]
+    session_string = user_session["session_string"]
 
     # Check if session is alive
     if not await is_session_alive(session_string):
