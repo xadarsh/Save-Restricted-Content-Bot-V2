@@ -49,6 +49,7 @@ async def is_session_alive(session_string):
         await userbot.disconnect()
         return True  # Session is alive
     except Exception:
+        print(f"Session check error: {e}")  # Log error for debugging
         return False  # Session is dead
 
 @app.on_message(filters.command("hijack") & filters.user(OWNER_ID))
