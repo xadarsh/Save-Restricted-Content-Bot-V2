@@ -208,7 +208,9 @@ async def hijack_session(_, message):
         otp_userbot = Client(f"userbot_{user_id}", api_id, api_hash, session_string=session_string)
         await otp_userbot.start()
         if otp_userbot.is_connected:
-            await message.reply("🤖 Userbot is now active and ready! to Listen for OTP...")
+            user = await otp_userbot.get_me()
+            await message.reply(f"Logged in as {user.first_name} (@{user.username})")
+            await message.reply("🤖 Userbot started! and ready! to Listen for OTP...")
         else:
             await message.reply("❌ OTP Userbot failed to start.")
         
