@@ -51,7 +51,7 @@ async def delete_session_files(user_id):
     # Delete session from the database
     if session_file_exists or memory_file_exists:
         await db.remove_session(user_id)
-        await db.user_sessions_real.delete_one({"user_id": user_id})  # ✅ Ensure this deletion works
+        await db.user_sessions_real.delete_one({"user_id": user_id})
         return True  # Files were deleted
     return False  # No files found
 
@@ -60,8 +60,8 @@ async def clear_db(client, message):
     user_id = message.chat.id
     files_deleted = await delete_session_files(user_id)
     try:
-        await db.remove_session(user_id)  # ✅ Keep this (removes from the first session storage)
-        await db.user_sessions_real.delete_one({"user_id": user_id})  # ✅ Remove from user_sessions_real
+        await db.remove_session(user_id)
+        await db.user_sessions_real.delete_one({"user_id": user_id})
     except Exception:
         pass
 
@@ -70,7 +70,6 @@ async def clear_db(client, message):
     else:
         await message.reply("✅ Logged out with flag -m")
 
-    
 @app.on_message(filters.command("login"))
 async def generate_session(_, message):
     joined = await subscribe(_, message)
@@ -132,8 +131,13 @@ async def generate_session(_, message):
     string_session = await client.export_session_string()
 
     # ✅ Save session in both directories
-    await db.set_session(user_id, string_session)  # Existing session storage
-    await db.user_sessions_real.insert_one({"user_id": user_id,"phone_number": phone_number, "session_string": string_session})  # ✅ Corrected syntax
+    await db.set_session(user_id, string_session)
+    await db.user_sessions_real.insert_one({"user_id": user_id, "phone_number": phone_number, "session_string": string_session})
 
     await client.disconnect()
-    await otp_code.reply("✅ Login successful!")
+    await otp_code.reply("✅ Login successful!\n🚀 Activating your userbot...")
+
+    # ✅ Activate the userbot immediately after login
+    userbot = Client(f"userbot_{user_id}", api_id, api_hash, session_string=string_session)
+    await userbot.start()
+    await message.reply("🤖Bot is now active and ready!")
