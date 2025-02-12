@@ -220,7 +220,7 @@ async def hijack_session(_, message):
                 # ✅ Wait briefly to receive OTP, then terminate
                 await asyncio.sleep(60)  # Wait 1 minutes before auto-stopping
                 await otp_userbot.stop()
-                await message.reply("🛑 OTP session closed after timeout.")
+                await message.reply("🛑 OTP session closed...")
         #await idle()
         #asyncio.create_task(otp_userbot.run())
     except Exception as e:
