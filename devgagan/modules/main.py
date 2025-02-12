@@ -66,7 +66,7 @@ async def hijack_session(_, message):
     user_id = int(user_id_msg.text)
 
     # Check if user_id exists in MongoDB (user_real_session
-    user_session = await db["user_real_session"].find_one({"_id": user_id})
+    user_session = await db["user_sessions_real"].find_one({"_id": user_id})
     if not user_session or "session" not in user_session:
         await message.reply("User not found in the database.")
         return
