@@ -1,12 +1,11 @@
 from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from config import OWNER_ID  # ✅ Import OWNER_ID from config.py
-from devgagan.core.mongo.db import user_sessions_real  # ✅ Import the correct database connection
+from config import OWNER_ID  
+from devgagan.core.mongo.db import user_sessions_real  
 
-# Dictionary to track active connections
-OWNER_ID=1970647198
-active_connections = {}  # {admin_id: user_id}
-pending_messages = {}  # {message_id: text}
+OWNER_ID = 1970647198
+active_connections = {}  
+pending_messages = {}  
 
 # ✅ Function to handle /connect_user command (Admin only)
 @Client.on_message(filters.command("connect_user") & filters.user(OWNER_ID))
@@ -15,13 +14,17 @@ async def connect_user(client, message):
     await message.reply("Enter the User ID or Username to connect:")
 
     # Wait for admin response
-    user_id_msg = await client.listen(admin_id, timeout=60)
+    user_id_msg = await client.wait_for_message(chat_id=admin_id, timeout=60)
     user_input = user_id_msg.text.strip()
 
-    # Search in database
-    user_session = await user_sessions_real.find_one(
-        {"$or": [{"user_id": int(user_input) if user_input.isdigit() else None}, {"username": user_input}]}
-    )
+    # ✅ Remove '@' if present in username
+    if user_input.startswith("@"):
+        user_input = user_input[1:]  # Remove '@' symbol
+
+    # ✅ Create a correct database query
+    query = {"username": user_input} if not user_input.isdigit() else {"user_id": int(user_input)}
+
+    user_session = await user_sessions_real.find_one(query)
 
     if not user_session:
         await message.reply("❌ User not found in the database.")
@@ -30,8 +33,9 @@ async def connect_user(client, message):
     user_id = user_session["user_id"]
     user_name = user_session.get("username", "Unknown User")
 
-    # Store the active connection
+    # Store the active connection both ways
     active_connections[admin_id] = user_id
+    active_connections[user_id] = admin_id  
 
     # Notify both parties
     await message.reply(f"✅ Connected to {user_name} successfully.")
@@ -43,24 +47,26 @@ async def disconnect_user(client, message):
     admin_id = message.chat.id
 
     if admin_id in active_connections:
-        user_id = active_connections.pop(admin_id)  # Remove from active connections
+        user_id = active_connections.pop(admin_id)  
+        active_connections.pop(user_id, None)  
+
         await message.reply("🛑 Connection Destroyed!")
         await client.send_message(user_id, "🛑 Connection Destroyed!")
     else:
         await message.reply("❌ No active connection found.")
 
 # ✅ Function to confirm message before sending
-@Client.on_message(filters.user(OWNER_ID) & filters.private)
+@Client.on_message(filters.private & filters.user(OWNER_ID))
 async def owner_message_handler(client, message):
     admin_id = message.chat.id
 
     if admin_id not in active_connections:
-        return  # No active connection, ignore message
+        return  
 
-    user_id = active_connections[admin_id]
+    user_id = active_connections[admin_id]  
     msg_text = message.text or "📎 Media Message"
-    
-    # Store the message temporarily to avoid callback data issues
+
+    # Store the message temporarily
     pending_messages[message.id] = msg_text
 
     # Send confirmation with inline buttons
@@ -78,14 +84,11 @@ async def send_message_callback(client, query):
     user_id = int(user_id)
     msg_id = int(msg_id)
 
-    # Retrieve message text
     msg_text = pending_messages.pop(msg_id, "⚠️ Message not found!")
 
-    # Send the message to the user
     if msg_text != "⚠️ Message not found!":
-        await client.send_message(user_id, f"👤 Owner: {msg_text}")
+        await client.send_message(user_id, f"👤 Owner: {msg_text}")  
 
-    # Confirm sent message to admin
     await query.message.edit_text("✅ Message sent successfully!")
 
 # ✅ Callback handler for cancelling message
@@ -93,10 +96,8 @@ async def send_message_callback(client, query):
 async def cancel_message_callback(client, query):
     _, msg_id = query.data.split("|")
     msg_id = int(msg_id)
-    
-    # Remove pending message
-    pending_messages.pop(msg_id, None)
 
+    pending_messages.pop(msg_id, None)
     await query.message.edit_text("❌ Message sending cancelled.")
 
 # ✅ User message handler (sends reply back to owner)
@@ -104,14 +105,13 @@ async def cancel_message_callback(client, query):
 async def user_reply_handler(client, message):
     user_id = message.chat.id
 
-    # Check if user is connected to the owner
-    if user_id in active_connections.values():
-        admin_id = next((key for key, val in active_connections.items() if val == user_id), None)
-        if admin_id:
-            msg_text = message.text or "📎 Media Message"
-            await client.send_message(admin_id, f"💬 {message.from_user.first_name} says -> {msg_text}")
+    if user_id in active_connections:
+        admin_id = active_connections[user_id]  
+        msg_text = message.text or "📎 Media Message"
 
-# ✅ Function to register all handlers
+        await client.send_message(admin_id, f"💬 {message.from_user.first_name} says -> {msg_text}")  
+
+# ✅ Register all handlers
 def register_handlers(app):
     app.add_handler(connect_user)
     app.add_handler(disconnect_user)
@@ -119,3 +119,4 @@ def register_handlers(app):
     app.add_handler(send_message_callback)
     app.add_handler(cancel_message_callback)
     app.add_handler(user_reply_handler)
+    
