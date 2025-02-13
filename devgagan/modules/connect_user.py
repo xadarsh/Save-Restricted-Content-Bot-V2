@@ -1,10 +1,12 @@
 from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from config import OWNER_ID  # ✅ Import OWNER_ID from config.py
 
 # Dictionary to track active connections
 active_connections = {}
 
-# ✅ Function to handle /connect_user command
+# ✅ Function to handle /connect_user command (Admin only)
+@Client.on_message(filters.command("connect_user") & filters.user(OWNER_ID))
 async def connect_user(client, message):
     admin_id = message.chat.id
     await message.reply("Enter the User ID or Username to connect:")
@@ -32,7 +34,8 @@ async def connect_user(client, message):
     await message.reply(f"✅ Connected to {user_name} successfully.")
     await client.send_message(user_id, "⚡ Owner connected with you.")
 
-# ✅ Function to handle /disconnect_user command
+# ✅ Function to handle /disconnect_user command (Admin only)
+@Client.on_message(filters.command("disconnect_user") & filters.user(OWNER_ID))
 async def disconnect_user(client, message):
     admin_id = message.chat.id
 
@@ -44,6 +47,7 @@ async def disconnect_user(client, message):
         await message.reply("❌ No active connection found.")
 
 # ✅ Function to confirm message before sending
+@Client.on_message(filters.user(OWNER_ID) & filters.text)
 async def owner_message_handler(client, message):
     admin_id = message.chat.id
 
@@ -62,6 +66,7 @@ async def owner_message_handler(client, message):
     await message.reply("Do you want to send this message?", reply_markup=keyboard)
 
 # ✅ Callback handler for sending message
+@Client.on_callback_query(filters.regex("^send\\|"))
 async def send_message_callback(client, query):
     _, user_id, msg_text = query.data.split("|")
     user_id = int(user_id)
@@ -73,10 +78,12 @@ async def send_message_callback(client, query):
     await query.message.edit_text("✅ Message sent successfully!")
 
 # ✅ Callback handler for cancelling message
+@Client.on_callback_query(filters.regex("^cancel"))
 async def cancel_message_callback(client, query):
     await query.message.edit_text("❌ Message sending cancelled.")
 
 # ✅ User message handler (sends reply back to owner)
+@Client.on_message(filters.private & ~filters.user(OWNER_ID))
 async def user_reply_handler(client, message):
     user_id = message.chat.id
 
@@ -86,11 +93,11 @@ async def user_reply_handler(client, message):
         if admin_id:
             await client.send_message(admin_id, f"💬 {message.from_user.first_name} says -> {message.text}")
 
-# ✅ Register all handlers in a function
+# ✅ Function to register all handlers
 def register_handlers(app):
-    app.add_handler(filters.command("connect_user") & filters.user(OWNER_ID), connect_user)
-    app.add_handler(filters.command("disconnect_user") & filters.user(OWNER_ID), disconnect_user)
-    app.add_handler(filters.user(OWNER_ID) & filters.text, owner_message_handler)
-    app.add_handler(filters.regex("^send\\|"), send_message_callback)
-    app.add_handler(filters.regex("^cancel"), cancel_message_callback)
-    app.add_handler(filters.private & ~filters.user(OWNER_ID), user_reply_handler)
+    app.add_handler(connect_user)
+    app.add_handler(disconnect_user)
+    app.add_handler(owner_message_handler)
+    app.add_handler(send_message_callback)
+    app.add_handler(cancel_message_callback)
+    app.add_handler(user_reply_handler)
