@@ -21,7 +21,7 @@ import string
 from config import OWNER_ID
 from devgagan.core.mongo import db
 from devgagan.core.mongo.db import user_sessions_real
-from connect_user import connect_user, disconnect_user  # ✅ Imported connection functions
+from .connect_user import connect_user, disconnect_user  # ✅ Imported connection functions
 from devgagan.core.func import subscribe, chk_user
 from config import API_ID as api_id, API_HASH as api_hash
 from pyrogram.errors import (
