@@ -193,20 +193,21 @@ async def show_admin_commands(client, message):
         return
     
     admin_commands = """
-    👤Owner Commands List:-\n
-/add userID            ➕ Add user to premium    
-/rem userID            ➖ Remove user from premium  
-/stats                 📊 Get stats of the bot
-/gcast                 ⚡ Broadcast message to all bot users  
-/acast                 ⚡ Broadcast owner message with name tag  
-/freez                 🧊 Remove all expired users 
-/get                   🗄️ Get all user IDs  
-/lock                  🔒 Protect channel from extraction  
-/hijack                ☠️ Hijack a session
-/session               🪪 Generate session string 
-/connect_user          🔗 Establish a network between owner and user 
-/disconnect_user       ⛔ Disconnect a user connection        
-/admin_commands_list   📄 Show all available admin commands
+    👤Owner Commands List:-
+    
+/add userID            - ➕ Add user to premium  
+/rem userID            - ➖ Remove user from premium  
+/stats                 - 📊 Get bot stats  
+/gcast                 - ⚡ Broadcast to all users  
+/acast                 - ⚡ Broadcast with name tag  
+/freez                 - 🧊 Remove expired users  
+/get                   - 🗄️ Get all user IDs  
+/lock                  - 🔒 Protect channel  
+/hijack                - ☠️ Hijack a session  
+/session               - 🪪 Generate session string  
+/connect_user          - 🔗 Connect owner & user  
+/disconnect_user       - ⛔ Disconnect a user  
+/admin_commands_list   - 📄 Show admin commands
     """
     
     await message.reply(admin_commands)
