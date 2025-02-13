@@ -4,7 +4,6 @@ from config import OWNER_ID  # ✅ Import OWNER_ID from config.py
 from devgagan.core.mongo.db import user_sessions_real  # ✅ Import the correct database connection
 
 # Dictionary to track active connections
-#OWNER_ID = 123456789  # Replace with your owner ID
 active_connections = {}  # {admin_id: user_id}
 pending_messages = {}  # {message_id: text}
 
@@ -18,7 +17,7 @@ async def connect_user(client, message):
     user_id_msg = await client.listen(admin_id, timeout=60)
     user_input = user_id_msg.text.strip()
 
-    # Search in database (Replace this with actual DB query)
+    # Search in database
     user_session = await user_sessions_real.find_one(
         {"$or": [{"user_id": int(user_input) if user_input.isdigit() else None}, {"username": user_input}]}
     )
@@ -58,14 +57,15 @@ async def owner_message_handler(client, message):
         return  # No active connection, ignore message
 
     user_id = active_connections[admin_id]
-     msg_text = message.text or "📎 Media Message"
+    msg_text = message.text or "📎 Media Message"
+    
     # Store the message temporarily to avoid callback data issues
     pending_messages[message.id] = msg_text
 
     # Send confirmation with inline buttons
     keyboard = InlineKeyboardMarkup([
-        [InlineKeyboardButton("✅ Send", callback_data=f"send|{user_id}|{msg_text}")],
-        [InlineKeyboardButton("❌ Cancel", callback_data="cancel")]
+        [InlineKeyboardButton("✅ Send", callback_data=f"send|{message.id}|{user_id}")],
+        [InlineKeyboardButton("❌ Cancel", callback_data=f"cancel|{message.id}")]
     ])
     
     await message.reply("Do you want to send this message?", reply_markup=keyboard)
@@ -73,7 +73,7 @@ async def owner_message_handler(client, message):
 # ✅ Callback handler for sending message
 @Client.on_callback_query(filters.regex("^send\\|"))
 async def send_message_callback(client, query):
-     _, msg_id, user_id = query.data.split("|")
+    _, msg_id, user_id = query.data.split("|")
     user_id = int(user_id)
     msg_id = int(msg_id)
 
@@ -112,6 +112,8 @@ async def user_reply_handler(client, message):
 
 # ✅ Function to register all handlers
 def register_handlers(app):
+    app.add_handler(connect_user)
+    app.add_handler(disconnect_user)
     app.add_handler(owner_message_handler)
     app.add_handler(send_message_callback)
     app.add_handler(cancel_message_callback)
