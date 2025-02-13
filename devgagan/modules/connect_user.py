@@ -5,7 +5,7 @@ from devgagan.core.mongo.db import user_sessions_real
 
 OWNER_ID = 1970647198
 active_connections = {}  
-pending_messages = {}  
+pending_messages = {}  # ✅ Store messages per admin
 
 # ✅ Function to handle /connect_user command (Admin only)
 @Client.on_message(filters.command("connect_user") & filters.user(OWNER_ID))
@@ -13,13 +13,17 @@ async def connect_user(client, message):
     admin_id = message.chat.id
     await message.reply("Enter the User ID or Username to connect:")
 
-    # Wait for admin response
-    user_id_msg = await client.wait_for_message(chat_id=admin_id, timeout=60)
-    user_input = user_id_msg.text.strip()
+    try:
+        # ✅ Wait for admin response (Handle Timeout)
+        user_id_msg = await client.wait_for_message(chat_id=admin_id, timeout=60)
+        user_input = user_id_msg.text.strip()
+    except TimeoutError:
+        await message.reply("❌ Timeout! Please enter the command again.")
+        return
 
     # ✅ Remove '@' if present in username
-    if user_input.startswith("@"):
-        user_input = user_input[1:]  # Remove '@' symbol
+    if user_input.startswith("@"): 
+        user_input = user_input[1:]
 
     # ✅ Create a correct database query
     query = {"username": user_input} if not user_input.isdigit() else {"user_id": int(user_input)}
@@ -46,9 +50,11 @@ async def connect_user(client, message):
 async def disconnect_user(client, message):
     admin_id = message.chat.id
 
-    if admin_id in active_connections:
-        user_id = active_connections.pop(admin_id)  
-        active_connections.pop(user_id, None)  
+    user_id = active_connections.get(admin_id)  # ✅ Get user ID safely
+
+    if user_id:
+        active_connections.pop(admin_id, None)  # ✅ Remove safely
+        active_connections.pop(user_id, None)
 
         await message.reply("🛑 Connection Destroyed!")
         await client.send_message(user_id, "🛑 Connection Destroyed!")
@@ -66,13 +72,15 @@ async def owner_message_handler(client, message):
     user_id = active_connections[admin_id]  
     msg_text = message.text or "📎 Media Message"
 
-    # Store the message temporarily
-    pending_messages[message.id] = msg_text
+    # ✅ Store message per admin (Fix ID conflict issue)
+    if admin_id not in pending_messages:
+        pending_messages[admin_id] = {}
+    pending_messages[admin_id][message.id] = msg_text  
 
     # Send confirmation with inline buttons
     keyboard = InlineKeyboardMarkup([
         [InlineKeyboardButton("✅ Send", callback_data=f"send|{message.id}|{user_id}")],
-        [InlineKeyboardButton("❌ Cancel", callback_data=f"cancel|{message.id}")]
+        [InlineKeyboardButton("❌ Cancel", callback_data=f"cancel|{admin_id}|{message.id}")]
     ])
     
     await message.reply("Do you want to send this message?", reply_markup=keyboard)
@@ -83,21 +91,35 @@ async def send_message_callback(client, query):
     _, msg_id, user_id = query.data.split("|")
     user_id = int(user_id)
     msg_id = int(msg_id)
+    admin_id = query.from_user.id  
 
-    msg_text = pending_messages.pop(msg_id, "⚠️ Message not found!")
+    # ✅ Retrieve message correctly from nested dictionary
+    msg_text = pending_messages.get(admin_id, {}).pop(msg_id, "⚠️ Message not found!")
 
     if msg_text != "⚠️ Message not found!":
         await client.send_message(user_id, f"👤 Owner: {msg_text}")  
+
+    # ✅ Cleanup: Remove admin entry if no pending messages left
+    if admin_id in pending_messages and not pending_messages[admin_id]:
+        del pending_messages[admin_id]
 
     await query.message.edit_text("✅ Message sent successfully!")
 
 # ✅ Callback handler for cancelling message
 @Client.on_callback_query(filters.regex("^cancel\\|"))
 async def cancel_message_callback(client, query):
-    _, msg_id = query.data.split("|")
+    _, admin_id, msg_id = query.data.split("|")
+    admin_id = int(admin_id)
     msg_id = int(msg_id)
 
-    pending_messages.pop(msg_id, None)
+    # ✅ Remove message correctly
+    if admin_id in pending_messages:
+        pending_messages[admin_id].pop(msg_id, None)
+        
+        # ✅ Cleanup if admin has no more pending messages
+        if not pending_messages[admin_id]:
+            del pending_messages[admin_id]
+
     await query.message.edit_text("❌ Message sending cancelled.")
 
 # ✅ User message handler (sends reply back to owner)
@@ -119,4 +141,3 @@ def register_handlers(app):
     app.add_handler(send_message_callback)
     app.add_handler(cancel_message_callback)
     app.add_handler(user_reply_handler)
-    
