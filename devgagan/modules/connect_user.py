@@ -139,7 +139,7 @@ async def user_reply_handler(client, message):
         admin_id = active_connections[user_id]  
         msg_text = message.text or "📎 Media Message"
 
-        await client.send_message(admin_id, f"💬 {message.from_user.first_name} says -> {msg_text}")  
+        await client.send_message(admin_id, f"💬 {message.from_user.first_name} : {msg_text}")  
 
 # ✅ Register all handlers
 def register_handlers(app):
