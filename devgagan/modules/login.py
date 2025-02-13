@@ -18,7 +18,7 @@ import random
 import os
 import asyncio
 import string
-#from config import OWNER_ID
+from config import OWNER_ID
 from devgagan.core.mongo import db
 from devgagan.core.mongo.db import user_sessions_real
 from .connect_user import connect_user, disconnect_user  # ✅ Imported connection functions
