@@ -193,6 +193,7 @@ async def show_admin_commands(client, message):
         return
     
     admin_commands = """
+    👤Owner Commands List:-\n
 /add userID            ➕ Add user to premium    
 /rem userID            ➖ Remove user from premium  
 /stats                 📊 Get stats of the bot
