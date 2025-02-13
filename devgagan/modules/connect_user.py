@@ -25,8 +25,8 @@ async def connect_user(client, message):
         # ✅ Wait for admin response (Handle Timeout)
         user_id_msg = await client.wait_for_message(chat_id=admin_id, timeout=60)
         user_input = user_id_msg.text.strip()
-    except TimeoutError:
-        await message.reply("❌ Timeout! Please enter the command again.")
+    except asyncio.TimeoutError:  # ✅ Catch timeout error properly
+        await message.reply("❌ Timeout! You took too long to respond. Please enter the command again.")
         return
 
     # ✅ Remove '@' if present in username
