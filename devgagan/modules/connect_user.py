@@ -112,7 +112,7 @@ async def send_message_callback(client, query):
         del pending_messages[admin_id]
     # ✅ Delete the original confirmation message
     await query.message.delete()
-    await query.send_message("✅ Message sent successfully!")
+    await query.message.chat.send_message("✅ Message sent successfully!")
 
 # ✅ Callback handler for cancelling message
 @Client.on_callback_query(filters.regex("^cancel\\|"))
@@ -130,7 +130,7 @@ async def cancel_message_callback(client, query):
             del pending_messages[admin_id]
     # ✅ Delete the original confirmation message
     await query.message.delete()
-    await query.send_message("❌ Message sending cancelled.")
+    await query.message.chat.send_message("❌ Message sending cancelled.")
 
 # ✅ User message handler (sends reply back to owner)
 @Client.on_message(filters.private & ~filters.user(OWNER_ID))
