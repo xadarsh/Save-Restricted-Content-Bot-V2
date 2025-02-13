@@ -62,6 +62,9 @@ async def set(_, message):
  
  
  
+from pyrogram import Client, filters
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+
 help_pages = [
     (
         "📝 **Bot Commands Overview (1/2)**:\n\n"
@@ -103,7 +106,7 @@ help_pages = [
         "17. **/session**\n"
         "> Generate Pyrogram V2 session\n\n"
         "18. **/settings**\n"
-        "> 1. SETCHATID : To directly upload in channel or group or user's dm use it with -100[chatID]\n"
+        "> 1. SETCHATID : To directly upload in channel or group or user's DM use it with -100[chatID]\n"
         "> 2. SETRENAME : To add custom rename tag or username of your channels\n"
         "> 3. CAPTION : To add custom caption\n"
         "> 4. REPLACEWORDS : Can be used for words in deleted set via REMOVE WORDS\n"
@@ -112,60 +115,65 @@ help_pages = [
         "****"
     )
 ]
- 
- 
-async def send_or_edit_help_page(_, message, page_number):
+
+
+async def send_or_edit_help_page(client, message, page_number):
+    """ Sends or edits the help message with navigation buttons. """
+
     if page_number < 0 or page_number >= len(help_pages):
-        return
- 
-     
-    prev_button = InlineKeyboardButton("◀️ Previous", callback_data=f"help_prev_{page_number}")
-    next_button = InlineKeyboardButton("Next ▶️", callback_data=f"help_next_{page_number}")
- 
-     
+        return  # Prevent index out of range
+
+    # Create navigation buttons
     buttons = []
     if page_number > 0:
-        buttons.append(prev_button)
+        buttons.append(InlineKeyboardButton("◀️ Previous", callback_data=f"help_prev_{page_number}"))
     if page_number < len(help_pages) - 1:
-        buttons.append(next_button)
- 
-     
-    keyboard = InlineKeyboardMarkup([buttons])
- 
-     
-    await message.delete()
- 
-     
+        buttons.append(InlineKeyboardButton("Next ▶️", callback_data=f"help_next_{page_number}"))
+
+    # Make sure buttons are in a row
+    keyboard = InlineKeyboardMarkup([buttons] if buttons else [])
+
+    # Try to delete the message safely (in case of lack of permissions)
+    try:
+        await message.delete()
+    except Exception:
+        pass  # Ignore errors if the bot lacks delete permissions
+
+    # Send the help message with inline buttons
     await message.reply(
         help_pages[page_number],
         reply_markup=keyboard
     )
- 
- 
+
+
 @app.on_message(filters.command("help"))
 async def help(client, message):
-    join = await subscribe(client, message)
+    """ Handles /help command and sends the first help page. """
+
+    join = await subscribe(client, message)  # Check if user has joined the required channel
     if join == 1:
         return
- 
-     
+
     await send_or_edit_help_page(client, message, 0)
- 
- 
+
+
 @app.on_callback_query(filters.regex(r"help_(prev|next)_(\d+)"))
 async def on_help_navigation(client, callback_query):
+    """ Handles callback queries for help message navigation. """
+
     action, page_number = callback_query.data.split("_")[1], int(callback_query.data.split("_")[2])
- 
+
     if action == "prev":
         page_number -= 1
     elif action == "next":
         page_number += 1
- 
-     
-    await send_or_edit_help_page(client, callback_query.message, page_number)
- 
-     
+
+    # Check bounds before updating the message
+    if 0 <= page_number < len(help_pages):
+        await send_or_edit_help_page(client, callback_query.message, page_number)
+
     await callback_query.answer()
+
  
  
 from pyrogram import Client, filters
