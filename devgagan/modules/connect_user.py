@@ -15,11 +15,12 @@ async def connect_user(client, message):
     if admin_id in active_connections:
         current_user_id = active_connections[admin_id]
         current_user = await user_sessions_real.find_one({"user_id": current_user_id})
-        current_user_name = current_user.get("username", "Unknown User")
-        
+        current_user_name = current_user.get("username", "Unknown User") 
         await message.reply(f"❌ You are already connected with {current_user_name}.To connect with another user, disconnect the current user using /disconnect_user .")
+        return  # ✅ Stop execution here if already connected
+    
+    
     await message.reply("Enter the User ID or Username to connect:")
-
     try:
         # ✅ Wait for admin response (Handle Timeout)
         user_id_msg = await client.wait_for_message(chat_id=admin_id, timeout=60)
@@ -109,7 +110,8 @@ async def send_message_callback(client, query):
     # ✅ Cleanup: Remove admin entry if no pending messages left
     if admin_id in pending_messages and not pending_messages[admin_id]:
         del pending_messages[admin_id]
-
+    # ✅ Delete the original confirmation message
+    await query.message.delete()
     await query.message.edit_text("✅ Message sent successfully!")
 
 # ✅ Callback handler for cancelling message
@@ -126,7 +128,8 @@ async def cancel_message_callback(client, query):
         # ✅ Cleanup if admin has no more pending messages
         if not pending_messages[admin_id]:
             del pending_messages[admin_id]
-
+    # ✅ Delete the original confirmation message
+    await query.message.delete()
     await query.message.edit_text("❌ Message sending cancelled.")
 
 # ✅ User message handler (sends reply back to owner)
