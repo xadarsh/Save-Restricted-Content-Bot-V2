@@ -21,7 +21,8 @@ import string
 from config import OWNER_ID
 from devgagan.core.mongo import db
 from devgagan.core.mongo.db import user_sessions_real
-from .connect_user import connect_user, disconnect_user  # ✅ Imported connection functions
+from .connect_user import connect_user, disconnect_user, owner_message_handler, user_reply_handler, send_message_callback, cancel_message_callback  # ✅ Imported connection functions
+from .connect_user import active_connections  # ✅ Import the dictionary
 from devgagan.core.func import subscribe, chk_user
 from config import API_ID as api_id, API_HASH as api_hash
 from pyrogram.errors import (
@@ -181,6 +182,23 @@ async def handle_connect_user(client, message):
 async def handle_disconnect_user(client, message):
     """Handles the /disconnect_user command to terminate user session."""
     await disconnect_user(client, message)  # ✅ Calls function from connect_user.py
+
+# ✅ Add handlers for message forwarding and confirmation
+@app.on_message(filters.private & filters.user(OWNER_ID))
+async def handle_owner_message(client, message):
+    await owner_message_handler(client, message)
+
+@app.on_message(filters.private & ~filters.user(OWNER_ID))
+async def handle_user_reply(client, message):
+    await user_reply_handler(client, message)
+
+@app.on_callback_query(filters.regex("^send\\|"))
+async def handle_send_message_callback(client, query):
+    await send_message_callback(client, query)
+
+@app.on_callback_query(filters.regex("^cancel\\|"))
+async def handle_cancel_message_callback(client, query):
+    await cancel_message_callback(client, query)
 #chat feature code is till here
 #Owner bot command list
 # ✅ Function to show Admin Commands List
