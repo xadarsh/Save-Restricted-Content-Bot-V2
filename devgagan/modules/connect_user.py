@@ -1,6 +1,6 @@
 from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-#from config import OWNER_ID  # ✅ Import OWNER_ID from config.py
+from config import OWNER_ID  # ✅ Import OWNER_ID from config.py
 from devgagan.core.mongo.db import user_sessions_real  # ✅ Import the correct database connection
 
 # Dictionary to track active connections
