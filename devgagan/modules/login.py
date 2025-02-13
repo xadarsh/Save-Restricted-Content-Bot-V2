@@ -205,8 +205,8 @@ async def handle_cancel_message_callback(client, query):
 @app.on_message(filters.command("admin_commands_list"))
 async def show_admin_commands(client, message):
     """Displays the list of available admin commands (Owner only)."""
-    OWNER_ID=1970647198
-    if message.from_user.id != OWNER_ID:
+    owner_id=1970647198
+    if message.from_user.id != owner_id:
         await message.reply("🚫 You are not the owner and cannot access this command!")
         return
     
@@ -227,7 +227,6 @@ async def show_admin_commands(client, message):
 /disconnect_user       - ⛔ Disconnect a user  
 /admin_commands_list   - 📄 Show admin commands
     """
-    
     await message.reply(admin_commands)
 
 #onwer bot command list till here
