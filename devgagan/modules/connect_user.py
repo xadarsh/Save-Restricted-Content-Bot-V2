@@ -17,8 +17,7 @@ async def connect_user(client, message):
         current_user = await user_sessions_real.find_one({"user_id": current_user_id})
         current_user_name = current_user.get("username", "Unknown User")
         
-        await message.reply(f"❌ You are already connected with {current_user_name}.
-    To connect with another user, disconnect the current user using /disconnect_user .")
+        await message.reply(f"❌ You are already connected with {current_user_name}.To connect with another user, disconnect the current user using /disconnect_user .")
     await message.reply("Enter the User ID or Username to connect:")
 
     try:
