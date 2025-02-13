@@ -11,6 +11,14 @@ pending_messages = {}  # ✅ Store messages per admin
 @Client.on_message(filters.command("connect_user") & filters.user(OWNER_ID))
 async def connect_user(client, message):
     admin_id = message.chat.id
+    # ✅ Check if the owner is already connected to a user
+    if admin_id in active_connections:
+        current_user_id = active_connections[admin_id]
+        current_user = await user_sessions_real.find_one({"user_id": current_user_id})
+        current_user_name = current_user.get("username", "Unknown User")
+        
+        await message.reply(f"❌ You are already connected with {current_user_name}.
+    To connect with another user, disconnect the current user using /disconnect_user .")
     await message.reply("Enter the User ID or Username to connect:")
 
     try:
