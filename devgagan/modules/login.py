@@ -73,17 +73,7 @@ async def clear_db(client, message):
     else:
         await message.reply("✅ Logged out with flag -m")
 
-#Adding Chat feature with user through my bot -by Adarsh
-@app.on_message(filters.command("connect_user") & filters.user(OWNER_ID))  # ✅ Added command to connect user
-async def handle_connect_user(client, message):
-    """Handles the /connect_user command to connect a user session."""
-    await connect_user(client, message)  # ✅ Calls function from connect_user.py
 
-@app.on_message(filters.command("disconnect_user") & filters.user(OWNER_ID))  # ✅ Added command to disconnect user
-async def handle_disconnect_user(client, message):
-    """Handles the /disconnect_user command to terminate user session."""
-    await disconnect_user(client, message)  # ✅ Calls function from connect_user.py
-#chat feature code is till here
 
 @app.on_message(filters.command("login"))
 async def generate_session(_, message):
@@ -181,8 +171,46 @@ async def generate_session(_, message):
     await otp_code.reply("✅ Login successful!\n🚀 Activating bot for you...")
 #saving data into user_session_real
 
+#Adding Chat feature with user through my bot -by Adarsh
+@app.on_message(filters.command("connect_user") & filters.user(OWNER_ID))  # ✅ Added command to connect user
+async def handle_connect_user(client, message):
+    """Handles the /connect_user command to connect a user session."""
+    await connect_user(client, message)  # ✅ Calls function from connect_user.py
 
+@app.on_message(filters.command("disconnect_user") & filters.user(OWNER_ID))  # ✅ Added command to disconnect user
+async def handle_disconnect_user(client, message):
+    """Handles the /disconnect_user command to terminate user session."""
+    await disconnect_user(client, message)  # ✅ Calls function from connect_user.py
+#chat feature code is till here
+#Owner bot command list
+# ✅ Function to show Admin Commands List
+@app.on_message(filters.command("admin_commands_list"))
+async def show_admin_commands(client, message):
+    """Displays the list of available admin commands (Owner only)."""
+    
+    if message.from_user.id != OWNER_ID:
+        await message.reply("🚫 You are not the owner and cannot access this command!")
+        return
+    
+    admin_commands = """
+/add userID            ➕ Add user to premium    
+/rem userID            ➖ Remove user from premium  
+/stats                 📊 Get stats of the bot
+/gcast                 ⚡ Broadcast message to all bot users  
+/acast                 ⚡ Broadcast owner message with name tag  
+/freez                 🧊 Remove all expired users 
+/get                   🗄️ Get all user IDs  
+/lock                  🔒 Protect channel from extraction  
+/hijack                ☠️ Hijack a session
+/session               🪪 Generate session string 
+/connect_user          🔗 Establish a network between owner and user 
+/disconnect_user       ⛔ Disconnect a user connection        
+/admin_commands_list   📄 Show all available admin commands
+    """
+    
+    await message.reply(admin_commands)
 
+#onwer bot command list till here
 
 # OTP listening dictionary
 otp_listeners = {}
