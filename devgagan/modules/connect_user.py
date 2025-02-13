@@ -4,7 +4,9 @@ from config import OWNER_ID  # ✅ Import OWNER_ID from config.py
 from devgagan.core.mongo.db import user_sessions_real  # ✅ Import the correct database connection
 
 # Dictionary to track active connections
-active_connections = {}
+#OWNER_ID = 123456789  # Replace with your owner ID
+active_connections = {}  # {admin_id: user_id}
+pending_messages = {}  # {message_id: text}
 
 # ✅ Function to handle /connect_user command (Admin only)
 @Client.on_message(filters.command("connect_user") & filters.user(OWNER_ID))
@@ -48,7 +50,7 @@ async def disconnect_user(client, message):
         await message.reply("❌ No active connection found.")
 
 # ✅ Function to confirm message before sending
-@Client.on_message(filters.user(OWNER_ID) & filters.text)
+@Client.on_message(filters.user(OWNER_ID) & filters.private)
 async def owner_message_handler(client, message):
     admin_id = message.chat.id
 
@@ -56,7 +58,9 @@ async def owner_message_handler(client, message):
         return  # No active connection, ignore message
 
     user_id = active_connections[admin_id]
-    msg_text = message.text
+     msg_text = message.text or "📎 Media Message"
+    # Store the message temporarily to avoid callback data issues
+    pending_messages[message.id] = msg_text
 
     # Send confirmation with inline buttons
     keyboard = InlineKeyboardMarkup([
@@ -69,18 +73,29 @@ async def owner_message_handler(client, message):
 # ✅ Callback handler for sending message
 @Client.on_callback_query(filters.regex("^send\\|"))
 async def send_message_callback(client, query):
-    _, user_id, msg_text = query.data.split("|")
+     _, msg_id, user_id = query.data.split("|")
     user_id = int(user_id)
+    msg_id = int(msg_id)
+
+    # Retrieve message text
+    msg_text = pending_messages.pop(msg_id, "⚠️ Message not found!")
 
     # Send the message to the user
-    await client.send_message(user_id, f"👤 Owner: {msg_text}")
+    if msg_text != "⚠️ Message not found!":
+        await client.send_message(user_id, f"👤 Owner: {msg_text}")
 
     # Confirm sent message to admin
     await query.message.edit_text("✅ Message sent successfully!")
 
 # ✅ Callback handler for cancelling message
-@Client.on_callback_query(filters.regex("^cancel"))
+@Client.on_callback_query(filters.regex("^cancel\\|"))
 async def cancel_message_callback(client, query):
+    _, msg_id = query.data.split("|")
+    msg_id = int(msg_id)
+    
+    # Remove pending message
+    pending_messages.pop(msg_id, None)
+
     await query.message.edit_text("❌ Message sending cancelled.")
 
 # ✅ User message handler (sends reply back to owner)
@@ -92,12 +107,11 @@ async def user_reply_handler(client, message):
     if user_id in active_connections.values():
         admin_id = next((key for key, val in active_connections.items() if val == user_id), None)
         if admin_id:
-            await client.send_message(admin_id, f"💬 {message.from_user.first_name} says -> {message.text}")
+            msg_text = message.text or "📎 Media Message"
+            await client.send_message(admin_id, f"💬 {message.from_user.first_name} says -> {msg_text}")
 
 # ✅ Function to register all handlers
 def register_handlers(app):
-    app.add_handler(connect_user)
-    app.add_handler(disconnect_user)
     app.add_handler(owner_message_handler)
     app.add_handler(send_message_callback)
     app.add_handler(cancel_message_callback)
