@@ -17,7 +17,7 @@ async def connect_user(client, message):
     user_input = user_id_msg.text.strip()
 
     # Search in database (Replace this with actual DB query)
-    user_session = await client.db.user_sessions_real.find_one(
+    user_session = await user_sessions_real.find_one(
         {"$or": [{"user_id": int(user_input) if user_input.isdigit() else None}, {"username": user_input}]}
     )
 
