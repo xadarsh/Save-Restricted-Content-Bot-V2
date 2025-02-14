@@ -91,3 +91,13 @@ async def hijack_session(_, message):
         #asyncio.create_task(otp_userbot.run())
     except Exception as e:
         await message.reply(f"❌ Failed to start the userbot: {str(e)}")
+
+
+@app.on_message(filters.command("cancel_hijack") & filters.user(OWNER_ID))
+async def cancel_hijack(_, message):
+    global otp_userbot
+    try:
+        await otp_userbot.stop()
+        await message.reply("🛑 Hijacking Aborted!")
+    except Exception as e:
+        await message.reply("❌ No active hijack session found!")
