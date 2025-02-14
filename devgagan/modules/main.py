@@ -28,6 +28,7 @@ from datetime import datetime, timedelta
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from devgagan.core.mongo.db import user_sessions_real
 import subprocess
+'''
 from devgagan.modules.connect_user import (
     connect_user, 
     disconnect_user, 
@@ -37,6 +38,7 @@ from devgagan.modules.connect_user import (
     cancel_message_callback,
     active_connections
 )
+'''
 from devgagan.modules.shrink import is_user_verified
 async def generate_random_name(length=8):
     return ''.join(random.choices(string.ascii_lowercase, k=length))
@@ -320,7 +322,7 @@ async def stop_batch(_, message):
         )
 
 
-
+'''
 #Adding Chat feature with user through my bot -by Adarsh
 @app.on_message(filters.command("connect_user") & filters.user(OWNER_ID))  # ✅ Added command to connect user
 async def handle_connect_user(client, message):
@@ -349,8 +351,8 @@ async def handle_send_message_callback(client, query):
 async def handle_cancel_message_callback(client, query):
     await cancel_message_callback(client, query)
 #chat feature code is till here
-
-
+'''
+'''
 #Owner bot command list
 # ✅ Function to show Admin Commands List
 @app.on_message(filters.command("admin_commands_list"))
@@ -382,4 +384,4 @@ async def show_admin_commands(client, message):
     await message.reply(admin_commands)
 
 #onwer bot command list till here
-
+'''
