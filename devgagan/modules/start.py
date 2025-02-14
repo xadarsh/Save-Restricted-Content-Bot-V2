@@ -25,27 +25,26 @@ from pyrogram.raw.types import InputUserSelf
 from pyrogram.types import BotCommand, InlineKeyboardButton, InlineKeyboardMarkup
  
 @app.on_message(filters.command("set"))
-async def set(_, message):
+async def set_commands(_, message):
     if message.from_user.id not in OWNER_ID:
         await message.reply("You are not authorized to use this command.")
         return
-     
-await app.set_bot_commands([
-    BotCommand("start", "🚀 Start the bot"),
-    BotCommand("login", "🔑 Get into the bot"),
-    BotCommand("logout", "🚪 Get out of the bot"),
-    BotCommand("batch", "🫠 Extract in bulk"),
-    BotCommand("cancel", "🚫 Cancel batch process"),
-    BotCommand("myplan", "⌛ Get your plan details"),
-    BotCommand("transfer", "💘 Gift premium to others"),
-    BotCommand("settings", "⚙️ Personalize things"),
-    BotCommand("speedtest", "🚅 Speed of server"),
-    BotCommand("help", "❓ If you're a noob, still!"),
-    BotCommand("terms", "🥺 Terms and conditions"),
-    BotCommand("admin_commands_list", "📜 List of admin commands")
-])
 
- 
+    await app.set_bot_commands([
+        BotCommand("start", "🚀 Start the bot"),
+        BotCommand("login", "🔑 Get into the bot"),
+        BotCommand("logout", "🚪 Get out of the bot"),
+        BotCommand("batch", "🫠 Extract in bulk"),
+        BotCommand("cancel", "🚫 Cancel batch process"),
+        BotCommand("myplan", "⌛ Get your plan details"),
+        BotCommand("transfer", "💘 Gift premium to others"),
+        BotCommand("settings", "⚙️ Personalize things"),
+        BotCommand("speedtest", "🚅 Speed of server"),
+        BotCommand("help", "❓ If you're a noob, still!"),
+        BotCommand("terms", "🥺 Terms and conditions"),
+        BotCommand("admin_commands_list", "📜 List of admin commands")
+    ])
+
     await message.reply("✅ Commands configured successfully!")
  
 help_pages = [
