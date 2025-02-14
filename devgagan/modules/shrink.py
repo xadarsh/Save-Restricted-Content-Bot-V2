@@ -24,8 +24,8 @@ from devgagan.core.func import *
 from datetime import datetime, timedelta
 from motor.motor_asyncio import AsyncIOMotorClient
 from config import MONGO_DB, WEBSITE_URL, AD_API, LOG_GROUP  
-import devgagan.modules.connectUser  # Correct import path
-from devgagan.modules.connectUser import register_handlers
+#import devgagan.modules.connectUser  # Correct import path
+#from devgagan.modules.connectUser import register_handlers
  
  
 tclient = AsyncIOMotorClient(MONGO_DB)
@@ -177,4 +177,4 @@ async def show_admin_commands(client, message):
     await message.reply(admin_commands)
 
 #onwer bot command list till here
-register_handlers(app)
+#register_handlers(app)
