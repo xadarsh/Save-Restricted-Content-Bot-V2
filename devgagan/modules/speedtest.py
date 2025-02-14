@@ -63,11 +63,11 @@ def speed_convert(size, byte=True):
     return f"{round(size, 2)} {units[zero]}"
 
 # ✅ Define Buttons Globally (Keeping "Report Issue")
-buttons = [[Button.url("🛠 Report Issue", "https://t.me/Contact_xbot")]]
+buttons = [[Button.url("🐛 Report Bug", "https://t.me/Contact_xbot")]]
 
 @gagan.on(events.NewMessage(incoming=True, pattern='/speedtest'))
 async def speedtest(event):
-    speed = await event.reply("🚀 Running Speed Test... Please wait.", parse_mode='html')
+    speed = await event.reply("🚀 Running Speed Test... Please wait.")
 
     test = Speedtest()
     test.get_best_server()
@@ -107,7 +107,7 @@ async def speedtest(event):
 
     try:
         # ✅ Send the Speed Test Image as a New Message with Caption
-        await event.reply(file=path, caption=string_speed, buttons=buttons, parse_mode='html')
+        await event.reply(string_speed,file=path, buttons=buttons, parse_mode='html')
         await speed.delete()
     except Exception as e:
         await speed.delete()
