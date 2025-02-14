@@ -76,7 +76,7 @@ async def speedtest(event):
     test.results.share()
     
     result = test.results.dict()
-    path = result.get('share', None)  # Get the speed test image URL
+    path = (result['share'])  # Get the speed test image URL
     current_time = get_readable_time(time() - botStartTime)
 
     string_speed = f'''
