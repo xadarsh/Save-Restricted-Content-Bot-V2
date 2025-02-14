@@ -145,9 +145,10 @@ async def user_reply_handler(client, message):
 
 # ✅ Register all handlers
 def register_handlers(app):
-    app.add_handler(connect_user)
-    app.add_handler(disconnect_user)
-    app.add_handler(owner_message_handler)
-    app.add_handler(send_message_callback)
-    app.add_handler(cancel_message_callback)
-    app.add_handler(user_reply_handler)
+    app.add_handler(filters.command("connect_user"), handle_connect_user)
+    app.add_handler(filters.command("disconnect_user"), handle_disconnect_user)
+    app.add_handler(filters.private & filters.user(OWNER_ID), handle_owner_message)
+    app.add_handler(filters.private & ~filters.user(OWNER_ID), handle_user_reply)
+    app.add_handler(filters.regex("^send\\|"), handle_send_message_callback)
+    app.add_handler(filters.regex("^cancel\\|"), handle_cancel_message_callback)
+
