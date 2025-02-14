@@ -12,8 +12,8 @@ async def is_session_alive(session_string):
     try:
         userbot = Client(
             "session_checker",
-            api_id=API_ID,
-            api_hash=API_HASH,
+            api_id=api_id,
+            api_hash=api_hash,
             session_string=session_string
         )
         await userbot.connect()
