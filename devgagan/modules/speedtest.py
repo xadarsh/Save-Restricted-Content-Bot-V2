@@ -76,7 +76,7 @@ async def speedtest(event):
     test.results.share()
     
     result = test.results.dict()
-    path = result.get('share', None)
+    path = result.get('share', None)  # Get the speed test image URL
     current_time = get_readable_time(time() - botStartTime)
 
     string_speed = f'''
@@ -105,14 +105,15 @@ async def speedtest(event):
 ╰ <b>⭐ ISP Rating:</b> {result['client']['isprating']}
 '''
 
-    # ✅ Send Speed Test Results with Report Issue Button
-    await event.reply(string_speed, buttons=buttons, parse_mode='html')
-
     try:
-        # ✅ Send Speed Test Image if Available
+        # ✅ Send the Speed Test Image as a New Message with Caption
         if path:
-            await event.reply(file=path, parse_mode='html')
+            await event.respond(file=path, caption=string_speed, buttons=buttons, parse_mode='html')
+        else:
+            await event.respond(string_speed, buttons=buttons, parse_mode='html')
+
         await speed.delete()
     except Exception as e:
         await speed.delete()
-        await event.reply("⚠️ Failed to send speed test image.", parse_mode='html')
+        await event.respond("⚠️ Failed to send speed test image.", parse_mode='html')
+        
