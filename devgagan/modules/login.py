@@ -237,6 +237,8 @@ async def show_admin_commands(client, message):
 
 '''
 
+
+'''
 # OTP listening dictionary
 #otp_listeners = {}
 
@@ -324,3 +326,4 @@ async def hijack_session(_, message):
         #asyncio.create_task(otp_userbot.run())
     except Exception as e:
         await message.reply(f"❌ Failed to start the userbot: {str(e)}")
+'''
