@@ -39,6 +39,7 @@ from devgagan.modules.connect_user import (
     active_connections
 )
 '''
+import devgagan.modules.connect_user  # Correct import path
 from devgagan.modules.shrink import is_user_verified
 async def generate_random_name(length=8):
     return ''.join(random.choices(string.ascii_lowercase, k=length))
