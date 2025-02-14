@@ -28,14 +28,14 @@ from datetime import datetime, timedelta
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from devgagan.core.mongo.db import user_sessions_real
 import subprocess
-from connect_user import (
+from devgagan.modules.connect_user import (
     connect_user, 
     disconnect_user, 
     owner_message_handler, 
     user_reply_handler, 
     send_message_callback, 
     cancel_message_callback,
-    active_connections  # ✅ Imported connection functions and active connections
+    active_connections
 )
 from devgagan.modules.shrink import is_user_verified
 async def generate_random_name(length=8):
