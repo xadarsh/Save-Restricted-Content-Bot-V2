@@ -16,6 +16,7 @@ from time import time
 from speedtest import Speedtest
 import math
 from telethon import events
+from telethon.tl.custom import Button  # Add this at the top
 from devgagan import botStartTime
 from devgagan import sex as gagan
 
