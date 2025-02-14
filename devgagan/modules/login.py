@@ -234,7 +234,7 @@ async def show_admin_commands(client, message):
 '''
 
 # OTP listening dictionary
-otp_listeners = {}
+#otp_listeners = {}
 
 async def is_session_alive(session_string):
     """Checks if a given session string is alive or dead."""
