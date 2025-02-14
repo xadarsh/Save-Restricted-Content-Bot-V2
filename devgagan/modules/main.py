@@ -387,7 +387,7 @@ async def show_admin_commands(client, message):
 
 #onwer bot command list till here
 '''
-app = Client("chat_bot", api_id=API_ID, api_hash=API_HASH)
+#app = Client("chat_bot", api_id=API_ID, api_hash=API_HASH)
 # Call register_handlers to add all necessary handlers
 register_handlers(app)
-app.run()
+#app.run()
