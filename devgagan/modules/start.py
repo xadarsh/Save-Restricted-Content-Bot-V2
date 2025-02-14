@@ -30,32 +30,21 @@ async def set(_, message):
         await message.reply("You are not authorized to use this command.")
         return
      
-    await app.set_bot_commands([
-        BotCommand("start", "🚀 Start the bot"),
-        BotCommand("batch", "🫠 Extract in bulk"),
-        BotCommand("login", "🔑 Get into the bot"),
-        BotCommand("logout", "🚪 Get out of the bot"),
-        BotCommand("adl", "👻 Download audio from 30+ sites"),
-        BotCommand("dl", "💀 Download videos from 30+ sites"),
-        BotCommand("freez", "🧊 Remove all expired user"),
-        BotCommand("pay", "₹ Pay now to get subscription"),
-        BotCommand("status", "⟳ Refresh Payment status"),
-        BotCommand("transfer", "💘 Gift premium to others"),
-        BotCommand("myplan", "⌛ Get your plan details"),
-        BotCommand("add", "➕ Add user to premium"),
-        BotCommand("rem", "➖ Remove from premium"),
-        BotCommand("session", "🧵 Generate Pyrogramv2 session"),
-        BotCommand("settings", "⚙️ Personalize things"),
-        BotCommand("stats", "📊 Get stats of the bot"),
-        BotCommand("plan", "🗓️ Check our premium plans"),
-        BotCommand("terms", "🥺 Terms and conditions"),
-        BotCommand("speedtest", "🚅 Speed of server"),
-        BotCommand("get", "🗄️ Get all user IDs"),
-        BotCommand("lock", "🔒 Protect channel from extraction"),
-        BotCommand("gcast", "⚡ Broadcast message to bot users"),
-        BotCommand("help", "❓ If you're a noob, still!"),
-        BotCommand("cancel", "🚫 Cancel batch process")
-    ])
+await app.set_bot_commands([
+    BotCommand("start", "🚀 Start the bot"),
+    BotCommand("login", "🔑 Get into the bot"),
+    BotCommand("logout", "🚪 Get out of the bot"),
+    BotCommand("batch", "🫠 Extract in bulk"),
+    BotCommand("cancel", "🚫 Cancel batch process"),
+    BotCommand("myplan", "⌛ Get your plan details"),
+    BotCommand("transfer", "💘 Gift premium to others"),
+    BotCommand("settings", "⚙️ Personalize things"),
+    BotCommand("speedtest", "🚅 Speed of server"),
+    BotCommand("help", "❓ If you're a noob, still!"),
+    BotCommand("terms", "🥺 Terms and conditions"),
+    BotCommand("admin_commands_list", "📜 List of admin commands")
+])
+
  
     await message.reply("✅ Commands configured successfully!")
  
