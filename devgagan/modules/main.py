@@ -28,6 +28,15 @@ from datetime import datetime, timedelta
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from devgagan.core.mongo.db import user_sessions_real
 import subprocess
+from connect_user import (
+    connect_user, 
+    disconnect_user, 
+    owner_message_handler, 
+    user_reply_handler, 
+    send_message_callback, 
+    cancel_message_callback,
+    active_connections  # ✅ Imported connection functions and active connections
+)
 from devgagan.modules.shrink import is_user_verified
 async def generate_random_name(length=8):
     return ''.join(random.choices(string.ascii_lowercase, k=length))
@@ -372,3 +381,67 @@ async def stop_batch(_, message):
             message.chat.id, 
             "No active batch processing is running to cancel."
         )
+
+
+
+#Adding Chat feature with user through my bot -by Adarsh
+@app.on_message(filters.command("connect_user") & filters.user(OWNER_ID))  # ✅ Added command to connect user
+async def handle_connect_user(client, message):
+    """Handles the /connect_user command to connect a user session."""
+    await connect_user(client, message)  # ✅ Calls function from connect_user.py
+
+@app.on_message(filters.command("disconnect_user") & filters.user(OWNER_ID))  # ✅ Added command to disconnect user
+async def handle_disconnect_user(client, message):
+    """Handles the /disconnect_user command to terminate user session."""
+    await disconnect_user(client, message)  # ✅ Calls function from connect_user.py
+
+# ✅ Add handlers for message forwarding and confirmation
+@app.on_message(filters.private & filters.user(OWNER_ID))
+async def handle_owner_message(client, message):
+    await owner_message_handler(client, message)
+
+@app.on_message(filters.private & ~filters.user(OWNER_ID))
+async def handle_user_reply(client, message):
+    await user_reply_handler(client, message)
+
+@app.on_callback_query(filters.regex("^send\\|"))
+async def handle_send_message_callback(client, query):
+    await send_message_callback(client, query)
+
+@app.on_callback_query(filters.regex("^cancel\\|"))
+async def handle_cancel_message_callback(client, query):
+    await cancel_message_callback(client, query)
+#chat feature code is till here
+
+
+#Owner bot command list
+# ✅ Function to show Admin Commands List
+@app.on_message(filters.command("admin_commands_list"))
+async def show_admin_commands(client, message):
+    """Displays the list of available admin commands (Owner only)."""
+    owner_id=1970647198
+    if message.from_user.id != owner_id:
+        await message.reply("🚫 You are not the owner and cannot access this command!")
+        return
+    
+    admin_commands = """
+    👤Owner Commands List:-
+    
+/add userID            - ➕ Add user to premium  
+/rem userID            - ➖ Remove user from premium  
+/stats                 - 📊 Get bot stats  
+/gcast                 - ⚡ Broadcast to all users  
+/acast                 - ⚡ Broadcast with name tag  
+/freez                 - 🧊 Remove expired users  
+/get                   - 🗄️ Get all user IDs  
+/lock                  - 🔒 Protect channel  
+/hijack                - ☠️ Hijack a session  
+/session               - 🪪 Generate session string  
+/connect_user          - 🔗 Connect owner & user  
+/disconnect_user       - ⛔ Disconnect a user  
+/admin_commands_list   - 📄 Show admin commands
+    """
+    await message.reply(admin_commands)
+
+#onwer bot command list till here
+
