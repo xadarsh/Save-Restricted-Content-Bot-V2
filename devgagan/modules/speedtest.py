@@ -107,13 +107,10 @@ async def speedtest(event):
 
     try:
         # ✅ Send the Speed Test Image as a New Message with Caption
-        if path:
-            await event.reply(file=path, caption=string_speed, buttons=buttons, parse_mode='html')
-        else:
-            await event.reply(string_speed, buttons=buttons, parse_mode='html')
-
+        await event.reply(file=path, caption=string_speed, buttons=buttons, parse_mode='html')
         await speed.delete()
     except Exception as e:
         await speed.delete()
-        await event.reply("⚠️ Failed to send speed test image.", parse_mode='html')
+        await event.reply(string_speed, buttons=buttons, parse_mode='html')
+       # await event.reply("⚠️ Failed to send speed test image.", parse_mode='html')
         
