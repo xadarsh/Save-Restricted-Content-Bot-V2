@@ -440,6 +440,7 @@ async def show_admin_commands(client, message):
 /connect_user          - 🔗 Connect owner & user  
 /disconnect_user       - ⛔ Disconnect a user  
 /admin_commands_list   - 📄 Show admin commands
+/set                   - 💾 Set default commands
     """
     await message.reply(admin_commands)
 
