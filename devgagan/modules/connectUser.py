@@ -159,16 +159,15 @@ def register_handlers(app):
     app.add_handler(MessageHandler(connect_user, filters.command("connect_user") & filters.user(OWNER_ID)))
     app.add_handler(MessageHandler(disconnect_user, filters.command("disconnect_user") & filters.user(OWNER_ID)))
 
-    # Owner message handler (Excludes commands to avoid interference)
-    app.add_handler(MessageHandler(owner_message_handler, filters.private & filters.user(OWNER_ID) & ~filters.command()))
+    # Owner message handler (Excludes commands)
+    app.add_handler(MessageHandler(owner_message_handler, filters.private & filters.user(OWNER_ID) & ~filters.command))
 
-    # User reply handler (Non-owner, Excludes commands to avoid interference)
-    app.add_handler(MessageHandler(user_reply_handler, filters.private & ~filters.user(OWNER_ID) & ~filters.command()))
+    # User reply handler (Excludes commands)
+    app.add_handler(MessageHandler(user_reply_handler, filters.private & ~filters.user(OWNER_ID) & ~filters.command))
 
-    # Callback query handlers (Ensures no interference with other callback handlers)
+    # Callback query handlers (Ensures no interference with other callbacks)
     app.add_handler(CallbackQueryHandler(send_message_callback, filters.regex(r"^send\|")))
     app.add_handler(CallbackQueryHandler(cancel_message_callback, filters.regex(r"^cancel\|")))
 
     # Debugging: Print registered handlers
     print("Handlers registered:", app.dispatcher.handlers)
-    
