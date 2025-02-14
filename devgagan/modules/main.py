@@ -39,8 +39,8 @@ from devgagan.modules.connect_user import (
     active_connections
 )
 '''
-import devgagan.modules.connectUser  # Correct import path
-from devgagan.modules.connectUser import register_handlers  # Import register function
+#import devgagan.modules.connectUser  # Correct import path
+#from devgagan.modules.connectUser import register_handlers  # Import register function
 from devgagan.modules.shrink import is_user_verified
 async def generate_random_name(length=8):
     return ''.join(random.choices(string.ascii_lowercase, k=length))
@@ -389,5 +389,5 @@ async def show_admin_commands(client, message):
 '''
 #app = Client("chat_bot", api_id=API_ID, api_hash=API_HASH)
 # Call register_handlers to add all necessary handlers
-register_handlers(app)
+#register_handlers(app)
 #app.run()
