@@ -3,7 +3,7 @@ from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from config import OWNER_ID  
 from devgagan.core.mongo.db import user_sessions_real  
 
-OWNER_ID = 1970647198
+#OWNER_ID = 1970647198
 active_connections = {}  
 pending_messages = {}  # ✅ Store messages per admin
 
