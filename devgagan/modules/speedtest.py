@@ -63,7 +63,7 @@ def speed_convert(size, byte=True):
     return f"{round(size, 2)} {units[zero]}"
 
 # ✅ Define Buttons Globally (Keeping "Report Issue")
-buttons = [[Button.url("🛠 Report Issue", "https://www.t.me/Contact_xbot")]]
+buttons = [[Button.url("🛠 Report Issue", "https://t.me/Contact_xbot")]]
 
 @gagan.on(events.NewMessage(incoming=True, pattern='/speedtest'))
 async def speedtest(event):
