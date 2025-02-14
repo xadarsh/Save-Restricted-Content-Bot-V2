@@ -21,8 +21,8 @@ import string
 from config import OWNER_ID
 from devgagan.core.mongo import db
 from devgagan.core.mongo.db import user_sessions_real
-from .connect_user import connect_user, disconnect_user, owner_message_handler, user_reply_handler, send_message_callback, cancel_message_callback  # ✅ Imported connection functions
-from .connect_user import active_connections  # ✅ Import the dictionary
+#from .connect_user import connect_user, disconnect_user, owner_message_handler, user_reply_handler, send_message_callback, cancel_message_callback  # ✅ Imported connection functions
+#from .connect_user import active_connections  # ✅ Import the dictionary
 from devgagan.core.func import subscribe, chk_user
 from config import API_ID as api_id, API_HASH as api_hash
 from pyrogram.errors import (
@@ -172,6 +172,7 @@ async def generate_session(_, message):
     await otp_code.reply("✅ Login successful!\n🚀 Activating bot for you...")
 #saving data into user_session_real
 
+'''
 #Adding Chat feature with user through my bot -by Adarsh
 @app.on_message(filters.command("connect_user") & filters.user(OWNER_ID))  # ✅ Added command to connect user
 async def handle_connect_user(client, message):
@@ -200,6 +201,7 @@ async def handle_send_message_callback(client, query):
 async def handle_cancel_message_callback(client, query):
     await cancel_message_callback(client, query)
 #chat feature code is till here
+'''
 '''
 #Owner bot command list
 # ✅ Function to show Admin Commands List
