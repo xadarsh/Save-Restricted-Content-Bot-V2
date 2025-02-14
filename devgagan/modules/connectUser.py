@@ -1,4 +1,6 @@
+import asyncio
 from pyrogram import Client, filters
+from pyrogram.handlers import MessageHandler, CallbackQueryHandler
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from config import OWNER_ID  
 from devgagan.core.mongo.db import user_sessions_real  
@@ -57,7 +59,6 @@ async def connect_user(client, message):
 @Client.on_message(filters.command("disconnect_user") & filters.user(OWNER_ID))
 async def disconnect_user(client, message):
     admin_id = message.chat.id
-
     user_id = active_connections.get(admin_id)  # ✅ Get user ID safely
 
     if user_id:
@@ -73,7 +74,6 @@ async def disconnect_user(client, message):
 @Client.on_message(filters.private & filters.user(OWNER_ID))
 async def owner_message_handler(client, message):
     admin_id = message.chat.id
-
     if admin_id not in active_connections:
         return  
 
@@ -145,10 +145,9 @@ async def user_reply_handler(client, message):
 
 # ✅ Register all handlers
 def register_handlers(app):
-    app.add_handler(filters.command("connect_user"), handle_connect_user)
-    app.add_handler(filters.command("disconnect_user"), handle_disconnect_user)
-    app.add_handler(filters.private & filters.user(OWNER_ID), handle_owner_message)
-    app.add_handler(filters.private & ~filters.user(OWNER_ID), handle_user_reply)
-    app.add_handler(filters.regex("^send\\|"), handle_send_message_callback)
-    app.add_handler(filters.regex("^cancel\\|"), handle_cancel_message_callback)
-
+    app.add_handler(MessageHandler(connect_user, filters.command("connect_user") & filters.user(OWNER_ID)))
+    app.add_handler(MessageHandler(disconnect_user, filters.command("disconnect_user") & filters.user(OWNER_ID)))
+    app.add_handler(MessageHandler(owner_message_handler, filters.private & filters.user(OWNER_ID)))
+    app.add_handler(MessageHandler(user_reply_handler, filters.private & ~filters.user(OWNER_ID)))
+    app.add_handler(CallbackQueryHandler(send_message_callback, filters.regex("^send\\|")))
+    app.add_handler(CallbackQueryHandler(cancel_message_callback, filters.regex("^cancel\\|")))
