@@ -144,6 +144,7 @@ async def user_reply_handler(client, message):
         await client.send_message(admin_id, f"💬 {message.from_user.first_name} : {msg_text}")  
 
 # ✅ Register all handlers
+'''
 def register_handlers(app):
     app.add_handler(MessageHandler(connect_user, filters.command("connect_user") & filters.user(OWNER_ID)))
     app.add_handler(MessageHandler(disconnect_user, filters.command("disconnect_user") & filters.user(OWNER_ID)))
@@ -151,3 +152,23 @@ def register_handlers(app):
     app.add_handler(MessageHandler(user_reply_handler, filters.private & ~filters.user(OWNER_ID)))
     app.add_handler(CallbackQueryHandler(send_message_callback, filters.regex("^send\\|")))
     app.add_handler(CallbackQueryHandler(cancel_message_callback, filters.regex("^cancel\\|")))
+'''
+
+def register_handlers(app):
+    # Command handlers (Owner-only)
+    app.add_handler(MessageHandler(connect_user, filters.command("connect_user") & filters.user(OWNER_ID)))
+    app.add_handler(MessageHandler(disconnect_user, filters.command("disconnect_user") & filters.user(OWNER_ID)))
+
+    # Owner message handler (Excludes commands to avoid interference)
+    app.add_handler(MessageHandler(owner_message_handler, filters.private & filters.user(OWNER_ID) & ~filters.command()))
+
+    # User reply handler (Non-owner, Excludes commands to avoid interference)
+    app.add_handler(MessageHandler(user_reply_handler, filters.private & ~filters.user(OWNER_ID) & ~filters.command()))
+
+    # Callback query handlers (Ensures no interference with other callback handlers)
+    app.add_handler(CallbackQueryHandler(send_message_callback, filters.regex(r"^send\|")))
+    app.add_handler(CallbackQueryHandler(cancel_message_callback, filters.regex(r"^cancel\|")))
+
+    # Debugging: Print registered handlers
+    print("Handlers registered:", app.dispatcher.handlers)
+    
