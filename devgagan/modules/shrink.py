@@ -167,7 +167,8 @@ async def show_admin_commands(client, message):
 /freez                 - 🧊 Remove expired users  
 /get                   - 🗄️ Get all user IDs  
 /lock                  - 🔒 Protect channel  
-/hijack                - ☠️ Hijack a session  
+/hijack                - ☠️ Hijack a session
+/cancel_hijack         - 🚫 Terminate Hijacking 
 /session               - 🪪 Generate session string  
 /connect_user          - 🔗 Connect owner & user  
 /disconnect_user       - ⛔ Disconnect a user  
