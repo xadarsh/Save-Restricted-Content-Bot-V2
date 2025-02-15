@@ -143,7 +143,7 @@ async def user_reply_handler(app, message):
         msg_text = message.text or "📎 Media Message"
 
         await app.send_message(admin_id, f"💬 {message.from_user.first_name} : {msg_text}")
-"""
+
 # ✅ Register all handlers
 def register_handlers(app):
     app.add_handler(MessageHandler(connect_user, filters.command("connect_user") & filters.user(OWNER_ID)))
@@ -154,7 +154,6 @@ def register_handlers(app):
     app.add_handler(CallbackQueryHandler(cancel_message_callback, filters.regex("^cancel\\|")))
 
 register_handlers(app)  # ✅ Call the function to register handlers
-"""
 
 
 
