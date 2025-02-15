@@ -354,7 +354,7 @@ async def stop_batch(_, message):
 
 
 
-
+"""
 
 
 #OWNER_ID = 1970647198
@@ -505,4 +505,4 @@ def register_handlers(app):
     app.add_handler(CallbackQueryHandler(cancel_message_callback, filters.regex("^cancel\\|")))
 
 register_handlers(app)  # ✅ Call the function to register handlers
-
+"""
