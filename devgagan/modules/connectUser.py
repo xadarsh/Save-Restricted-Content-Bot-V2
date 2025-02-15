@@ -26,7 +26,7 @@ async def connect_user(app, message):
     await message.reply("Enter the User ID or Username to connect:")
     try:
         # ✅ Wait for admin response (Handle Timeout)
-        user_id_msg = await app.wait_for_message(chat_id=admin_id, timeout=60)
+        user_id_msg = await app.listen(admin_id, timeout=60)
         user_input = user_id_msg.text.strip()
     except asyncio.TimeoutError:  # ✅ Catch timeout error properly
         await message.reply("❌ Timeout! You took too long to respond. Please enter the command again.")
@@ -88,8 +88,8 @@ async def owner_message_handler(app, message):
 
     # Send confirmation with inline buttons
     keyboard = InlineKeyboardMarkup([
-        [InlineKeyboardButton("✅ Send", callback_data=f"send|{message.id}|{user_id}")],
-        [InlineKeyboardButton("❌ Cancel", callback_data=f"cancel|{admin_id}|{message.id}")]
+        [InlineKeyboardButton("✅ Send", callback_data=f"send|{message.id}|{admin_id}")],
+        [InlineKeyboardButton("❌ Cancel", callback_data=f"cancel|{message.id}|{admin_id}")]
     ])
     
     await message.reply("Do you want to send this message?", reply_markup=keyboard)
@@ -103,7 +103,7 @@ async def send_message_callback(app, query):
     admin_id = query.from_user.id  
 
     # ✅ Retrieve message correctly from nested dictionary
-    msg_text = pending_messages.get(admin_id, {}).pop(msg_id, "⚠️ Message not found!")
+    msg_text = pending_messages.get(admin_id, {}).pop(msg_id, None) or "⚠️ Message not found!"
 
     if msg_text != "⚠️ Message not found!":
         await app.send_message(user_id, f"👤 Owner: {msg_text}")  
