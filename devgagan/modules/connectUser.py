@@ -153,7 +153,7 @@ def register_handlers(app):
     app.add_handler(MessageHandler(user_reply_handler, filters.private & ~filters.user(OWNER_ID)))
     app.add_handler(CallbackQueryHandler(send_message_callback, filters.regex("^send\\|")))
     app.add_handler(CallbackQueryHandler(cancel_message_callback, filters.regex("^cancel\\|")))
-register_handlers()
+register_handlers(app)
 '''
 def register_handlers(app):
     # Command handlers (Owner-only)
