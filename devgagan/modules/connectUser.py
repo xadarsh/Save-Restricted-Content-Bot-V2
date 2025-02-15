@@ -1,3 +1,4 @@
+"""
 import asyncio
 from pyrogram import Client, filters
 from pyrogram.handlers import MessageHandler, CallbackQueryHandler
@@ -155,7 +156,7 @@ def register_handlers(app):
 
 register_handlers(app)  # ✅ Call the function to register handlers
 
-
+"""
 
 
 
@@ -330,6 +331,12 @@ def register_handlers(app):
     app.add_handler(CallbackQueryHandler(send_message_callback, filters.regex("^send\\|")))
     app.add_handler(CallbackQueryHandler(cancel_message_callback, filters.regex("^cancel\\|")))
 register_handlers(app)
+
+"""
+
+
+
+
 '''
 def register_handlers(app):
     # Command handlers (Owner-only)
