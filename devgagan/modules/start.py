@@ -105,8 +105,9 @@ help_pages = [
 async def send_or_edit_help_page(_, message, page_number):
     if page_number < 0 or page_number >= len(help_pages):
         return
+     if message is None:
+        return  # Prevents AttributeError if message is None
  
-     
     prev_button = InlineKeyboardButton("◀️ Previous", callback_data=f"help_prev_{page_number}")
     next_button = InlineKeyboardButton("Next ▶️", callback_data=f"help_next_{page_number}")
  
@@ -120,8 +121,11 @@ async def send_or_edit_help_page(_, message, page_number):
      
     keyboard = InlineKeyboardMarkup([buttons])
  
-     
-    await message.delete()
+     try:
+        await message.delete()
+    except Exception as e:
+        print(f"Failed to delete message: {e}")  # Logs the error if message deletion fails
+    #await message.delete()
  
      
     await message.reply(
