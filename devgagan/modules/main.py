@@ -48,7 +48,7 @@ async def generate_random_name(length=8):
 users_loop = {}
 interval_set = {}
 batch_mode = {}
-register_handlers(app)
+#register_handlers(app)
 
 async def process_and_upload_link(userbot, user_id, msg_id, link, retry_count, message):
     try:
