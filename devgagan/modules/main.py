@@ -354,7 +354,7 @@ async def stop_batch(_, message):
 
 
 
-"""
+
 
 
 #OWNER_ID = 1970647198
@@ -425,6 +425,9 @@ async def disconnect_user(app, message):
 # ✅ Function to confirm message before sending
 @app.on_message(filters.private & filters.user(OWNER_ID))
 async def owner_message_handler(app, message):
+    if message.text.startswith("/"):
+        return  # Ignore commands, let other handlers process them
+        
     admin_id = message.chat.id
     if admin_id not in active_connections:
         return  
@@ -491,23 +494,24 @@ async def user_reply_handler(app, message):
 
     if user_id in active_connections:
         admin_id = active_connections[user_id]  
-        msg_text = message.text or "📎 Media Message"
+        
         if message.text:
-    msg_text = message.text
-elif message.photo:
-    msg_text = "📷 Photo Message"
-    await app.send_photo(admin_id, message.photo.file_id, caption=f"💬 {message.from_user.first_name}: {msg_text}")
-    return
-elif message.video:
-    msg_text = "📹 Video Message"
-    await app.send_video(admin_id, message.video.file_id, caption=f"💬 {message.from_user.first_name}: {msg_text}")
-    return
-else:
-   # msg_text = "📎 Media Message"
-    
+            msg_text = message.text
+            await app.send_message(admin_id, f"💬 {message.from_user.first_name}: {msg_text}")
+        
+        elif message.photo:
+            msg_text = "📷 Photo Message"
+            await app.send_photo(admin_id, message.photo.file_id, caption=f"💬 {message.from_user.first_name}: {msg_text}")
+        
+        elif message.video:
+            msg_text = "📹 Video Message"
+            await app.send_video(admin_id, message.video.file_id, caption=f"💬 {message.from_user.first_name}: {msg_text}")
+        
+        else:
+            msg_text = "📎 Media Message"
+            await app.send_message(admin_id, f"💬 {message.from_user.first_name}: {msg_text}")
 
-        await app.send_message(admin_id, f"💬 {message.from_user.first_name} : {msg_text}")
-
+"""
 # ✅ Register all handlers
 def register_handlers(app):
     app.add_handler(MessageHandler(connect_user, filters.command("connect_user") & filters.user(OWNER_ID)))
