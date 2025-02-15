@@ -492,6 +492,19 @@ async def user_reply_handler(app, message):
     if user_id in active_connections:
         admin_id = active_connections[user_id]  
         msg_text = message.text or "📎 Media Message"
+        if message.text:
+    msg_text = message.text
+elif message.photo:
+    msg_text = "📷 Photo Message"
+    await app.send_photo(admin_id, message.photo.file_id, caption=f"💬 {message.from_user.first_name}: {msg_text}")
+    return
+elif message.video:
+    msg_text = "📹 Video Message"
+    await app.send_video(admin_id, message.video.file_id, caption=f"💬 {message.from_user.first_name}: {msg_text}")
+    return
+else:
+   # msg_text = "📎 Media Message"
+    
 
         await app.send_message(admin_id, f"💬 {message.from_user.first_name} : {msg_text}")
 
