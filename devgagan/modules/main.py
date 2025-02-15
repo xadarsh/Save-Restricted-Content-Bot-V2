@@ -423,7 +423,7 @@ async def disconnect_user(app, message):
         await message.reply("❌ No active connection found.")
 
 # ✅ Function to confirm message before sending
-@app.on_message(filters.private & filters.user(OWNER_ID)
+@app.on_message(filters.private & filters.user(OWNER_ID))
 async def owner_message_handler(app, message):
     admin_id = message.chat.id
     if admin_id not in active_connections:
