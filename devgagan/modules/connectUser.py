@@ -4,6 +4,7 @@ from pyrogram.handlers import MessageHandler, CallbackQueryHandler
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from config import OWNER_ID  
 from devgagan.core.mongo.db import user_sessions_real  
+from devgagan import app
 
 #OWNER_ID = 1970647198
 active_connections = {}  
@@ -152,7 +153,7 @@ def register_handlers(app):
     app.add_handler(MessageHandler(user_reply_handler, filters.private & ~filters.user(OWNER_ID)))
     app.add_handler(CallbackQueryHandler(send_message_callback, filters.regex("^send\\|")))
     app.add_handler(CallbackQueryHandler(cancel_message_callback, filters.regex("^cancel\\|")))
-
+register_handlers()
 '''
 def register_handlers(app):
     # Command handlers (Owner-only)
