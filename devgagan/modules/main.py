@@ -40,7 +40,7 @@ from devgagan.modules.connect_user import (
 )
 '''
 #import devgagan.modules.connectUser  # Correct import path
-from devgagan.modules.connectUser import register_handlers  # Import register function
+#from devgagan.modules.connectUser import register_handlers  # Import register function
 from devgagan.modules.shrink import is_user_verified
 async def generate_random_name(length=8):
     return ''.join(random.choices(string.ascii_lowercase, k=length))
@@ -48,8 +48,18 @@ async def generate_random_name(length=8):
 users_loop = {}
 interval_set = {}
 batch_mode = {}
-register_handlers(app)
+#register_handlers(app)
+'''
+# Create a separate instance for connectUser.py handlers
+connect_app = Client("connect_user_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 
+# Register handlers with the new instance
+register_handlers(connect_app)
+
+# Start the new instance separately
+connect_app.run()
+
+'''
 async def process_and_upload_link(userbot, user_id, msg_id, link, retry_count, message):
     try:
         await get_msg(userbot, user_id, msg_id, link, retry_count, message)
