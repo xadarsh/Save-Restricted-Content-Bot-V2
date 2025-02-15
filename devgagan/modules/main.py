@@ -39,7 +39,7 @@ from devgagan.modules.connect_user import (
     active_connections
 )
 '''
-import devgagan.modules.connectUser  # Correct import path
+#import devgagan.modules.connectUser  # Correct import path
 from devgagan.modules.connectUser import register_handlers  # Import register function
 from devgagan.modules.shrink import is_user_verified
 async def generate_random_name(length=8):
@@ -48,7 +48,7 @@ async def generate_random_name(length=8):
 users_loop = {}
 interval_set = {}
 batch_mode = {}
-#register_handlers(app)
+register_handlers(app)
 
 async def process_and_upload_link(userbot, user_id, msg_id, link, retry_count, message):
     try:
