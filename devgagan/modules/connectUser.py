@@ -356,4 +356,3 @@ def register_handlers(app):
     # Debugging: Print registered handlers
     print("Handlers registered:", app.dispatcher.handlers)
 '''
-"""
