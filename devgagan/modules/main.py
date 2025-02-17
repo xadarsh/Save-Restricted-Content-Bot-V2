@@ -352,7 +352,7 @@ async def stop_batch(_, message):
 
 
 
-
+"""
 
 
 
@@ -510,7 +510,7 @@ async def user_reply_handler(app, message):
         else:
             msg_text = "📎 Media Message"
             await app.send_message(admin_id, f"💬 {message.from_user.first_name}: {msg_text}")
-
+"""
 """
 # ✅ Register all handlers
 def register_handlers(app):
