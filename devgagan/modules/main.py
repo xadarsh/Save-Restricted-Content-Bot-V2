@@ -18,32 +18,52 @@ import random
 import string
 import asyncio
 from pyrogram import filters, Client
-from devgagan import app, userrbot
-from config import API_ID, API_HASH, FREEMIUM_LIMIT, PREMIUM_LIMIT, OWNER_ID, DEFAULT_SESSION
+from devgagan import app
+from config import API_ID, API_HASH, FREEMIUM_LIMIT, PREMIUM_LIMIT, OWNER_ID
 from devgagan.core.get_func import get_msg
 from devgagan.core.func import *
 from devgagan.core.mongo import db
 from pyrogram.errors import FloodWait
 from datetime import datetime, timedelta
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from devgagan.core.mongo.db import user_sessions_real
 import subprocess
+from pyrogram.handlers import MessageHandler, CallbackQueryHandler
+'''
+from devgagan.modules.connect_user import (
+    connect_user, 
+    disconnect_user, 
+    owner_message_handler, 
+    user_reply_handler, 
+    send_message_callback, 
+    cancel_message_callback,
+    active_connections
+)
+'''
+#import devgagan.modules.connectUser  # Correct import path
+#from devgagan.modules.connectUser import register_handlers  # Import register function
 from devgagan.modules.shrink import is_user_verified
 async def generate_random_name(length=8):
     return ''.join(random.choices(string.ascii_lowercase, k=length))
 
-
-
 users_loop = {}
 interval_set = {}
 batch_mode = {}
+#register_handlers(app)
+'''
+# Create a separate instance for connectUser.py handlers
+connect_app = Client("connect_user_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 
+# Register handlers with the new instance
+register_handlers(connect_app)
+
+# Start the new instance separately
+connect_app.run()
+
+'''
 async def process_and_upload_link(userbot, user_id, msg_id, link, retry_count, message):
     try:
         await get_msg(userbot, user_id, msg_id, link, retry_count, message)
-        try:
-            await app.delete_messages(user_id, msg_id)
-        except Exception:
-            pass
         await asyncio.sleep(15)
     finally:
         pass
@@ -60,7 +80,7 @@ async def check_interval(user_id, freecheck):
         cooldown_end = interval_set[user_id]
         if now < cooldown_end:
             remaining_time = (cooldown_end - now).seconds
-            return False, f"Please wait {remaining_time} seconds(s) before sending another link. Alternatively, purchase premium for instant access.\n\n> Hey 👋 You can use /token to use the bot free for 3 hours without any time limit."
+            return False, f"Please wait {remaining_time} seconds(s) before sending another link. Alternatively, purchase premium for instant access.\n\n>"
         else:
             del interval_set[user_id]  # Cooldown expired, remove user from interval set
 
@@ -107,11 +127,14 @@ async def single_link(_, message):
     link = message.text if "tg://openmessage" in message.text else get_link(message.text)
     msg = await message.reply("Processing...")
     userbot = await initialize_userbot(user_id)
+
     try:
         if await is_normal_tg_link(link):
+            # Pass userbot if available; handle normal Telegram links
             await process_and_upload_link(userbot, user_id, msg.id, link, 0, message)
             await set_interval(user_id, interval_minutes=45)
         else:
+            # Handle special Telegram links
             await process_special_links(userbot, user_id, msg, link)
             
     except FloodWait as fw:
@@ -120,13 +143,18 @@ async def single_link(_, message):
         await msg.edit_text(f"Link: `{link}`\n\n**Error:** {str(e)}")
     finally:
         users_loop[user_id] = False
+        if userbot:
+            await userbot.stop()
         try:
             await msg.delete()
         except Exception:
             pass
 
 
+from pyrogram import Client, filters
+
 async def initialize_userbot(user_id): # this ensure the single startup .. even if logged in or not
+    """Initialize the userbot session for the given user."""
     data = await db.get_data(user_id)
     if data and data.get("session"):
         try:
@@ -141,13 +169,8 @@ async def initialize_userbot(user_id): # this ensure the single startup .. even 
             await userbot.start()
             return userbot
         except Exception:
-            await app.send_message(user_id, "Login Expired re do login")
             return None
-    else:
-        if DEFAULT_SESSION:
-            return userrbot
-        else:
-            return None
+    return None
 
 
 async def is_normal_tg_link(link: str) -> bool:
@@ -156,18 +179,15 @@ async def is_normal_tg_link(link: str) -> bool:
     return 't.me/' in link and not any(x in link for x in special_identifiers)
     
 async def process_special_links(userbot, user_id, msg, link):
-    if userbot is None:
-        return await msg.edit_text("Try logging in to the bot and try again.")
+    """Handle special Telegram links."""
     if 't.me/+' in link:
         result = await userbot_join(userbot, link)
         await msg.edit_text(result)
-        return
-    special_patterns = ['t.me/c/', 't.me/b/', '/s/', 'tg://openmessage']
-    if any(sub in link for sub in special_patterns):
+    elif any(sub in link for sub in ['t.me/c/', 't.me/b/', '/s/', 'tg://openmessage']):
         await process_and_upload_link(userbot, user_id, msg.id, link, 0, msg)
         await set_interval(user_id, interval_minutes=45)
-        return
-    await msg.edit_text("Invalid link...")
+    else:
+        await msg.edit_text("Invalid link format.")
 
 
 @app.on_message(filters.command("batch") & filters.private)
@@ -227,11 +247,11 @@ async def batch_link(_, message):
         await message.reply(response_message)
         return
         
-    join_button = InlineKeyboardButton("Join Channel", url="https://t.me/team_spy_pro")
+    join_button = InlineKeyboardButton("Join Channel", url="https://t.me/+9FZJh0WMZnE4YWRk")
     keyboard = InlineKeyboardMarkup([[join_button]])
     pin_msg = await app.send_message(
         user_id,
-        f"Batch process started ⚡\nProcessing: 0/{cl}\n\n**Powered by Team SPY**",
+        f"Batch process started ⚡\nProcessing: 0/{cl}\n\n****",
         reply_markup=keyboard
     )
     await pin_msg.pin(both_sides=True)
@@ -250,14 +270,14 @@ async def batch_link(_, message):
                     msg = await app.send_message(message.chat.id, f"Processing...")
                     await process_and_upload_link(userbot, user_id, msg.id, link, 0, message)
                     await pin_msg.edit_text(
-                        f"Batch process started ⚡\nProcessing: {i - cs + 1}/{cl}\n\n**__Powered by Team SPY__**",
+                        f"Batch process started ⚡\nProcessing: {i - cs + 1}/{cl}\n\n****",
                         reply_markup=keyboard
                     )
                     normal_links_handled = True
         if normal_links_handled:
             await set_interval(user_id, interval_minutes=300)
             await pin_msg.edit_text(
-                f"Batch completed successfully for {cl} messages 🎉\n\n**__Powered by Team SPY__**",
+                f"Batch completed successfully for {cl} messages 🎉\n\n****",
                 reply_markup=keyboard
             )
             await app.send_message(message.chat.id, "Batch completed successfully! 🎉")
@@ -276,13 +296,13 @@ async def batch_link(_, message):
                     msg = await app.send_message(message.chat.id, f"Processing...")
                     await process_and_upload_link(userbot, user_id, msg.id, link, 0, message)
                     await pin_msg.edit_text(
-                        f"Batch process started ⚡\nProcessing: {i - cs + 1}/{cl}\n\n**__Powered by Team SPY__**",
+                        f"Batch process started ⚡\nProcessing: {i - cs + 1}/{cl}\n\n****",
                         reply_markup=keyboard
                     )
 
         await set_interval(user_id, interval_minutes=300)
         await pin_msg.edit_text(
-            f"Batch completed successfully for {cl} messages 🎉\n\n**__Powered by Team SPY__**",
+            f"Batch completed successfully for {cl} messages 🎉\n\n****",
             reply_markup=keyboard
         )
         await app.send_message(message.chat.id, "Batch completed successfully! 🎉")
@@ -313,3 +333,193 @@ async def stop_batch(_, message):
             message.chat.id, 
             "No active batch processing is running to cancel."
         )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+"""
+
+
+
+
+#OWNER_ID = 1970647198
+active_connections = {}  
+pending_messages = {}  # ✅ Store messages per admin
+
+# ✅ Function to handle /connect_user command (Admin only)
+@app.on_message(filters.command("connect_user") & filters.user(OWNER_ID))
+async def connect_user(app, message):
+    admin_id = message.chat.id
+    # ✅ Check if the owner is already connected to a user
+    if admin_id in active_connections:
+        current_user_id = active_connections[admin_id]
+        current_user = await user_sessions_real.find_one({"user_id": current_user_id})
+        current_user_name = current_user.get("username", "Unknown User") 
+        await message.reply(f"❌ You are already connected with {current_user_name}.To connect with another user, disconnect the current user using /disconnect_user .")
+        return  # ✅ Stop execution here if already connected
+    
+    
+    await message.reply("Enter the User ID or Username to connect:")
+    try:
+        # ✅ Wait for admin response (Handle Timeout)
+        user_id_msg = await app.listen(admin_id, timeout=60)
+        user_input = user_id_msg.text.strip()
+    except asyncio.TimeoutError:  # ✅ Catch timeout error properly
+        await message.reply("❌ Timeout! You took too long to respond. Please enter the command again.")
+        return
+
+    # ✅ Remove '@' if present in username
+    if user_input.startswith("@"): 
+        user_input = user_input[1:]
+
+    # ✅ Create a correct database query
+    query = {"username": user_input} if not user_input.isdigit() else {"user_id": int(user_input)}
+
+    user_session = await user_sessions_real.find_one(query)
+
+    if not user_session:
+        await message.reply("❌ User not found in the database.")
+        return
+
+    user_id = user_session["user_id"]
+    user_name = user_session.get("username", "Unknown User")
+
+    # Store the active connection both ways
+    active_connections[admin_id] = user_id
+    active_connections[user_id] = admin_id  
+
+    # Notify both parties
+    await message.reply(f"✅ Connected to {user_name} successfully.")
+    await app.send_message(user_id, "⚡ Owner connected with you.")
+
+# ✅ Function to handle /disconnect_user command (Admin only)
+@app.on_message(filters.command("disconnect_user") & filters.user(OWNER_ID))
+async def disconnect_user(app, message):
+    admin_id = message.chat.id
+    user_id = active_connections.get(admin_id)  # ✅ Get user ID safely
+
+    if user_id:
+        active_connections.pop(admin_id, None)  # ✅ Remove safely
+        active_connections.pop(user_id, None)
+
+        await message.reply("🛑 Connection Destroyed!")
+        await app.send_message(user_id, "🛑 Connection Destroyed!")
+    else:
+        await message.reply("❌ No active connection found.")
+
+# ✅ Function to confirm message before sending
+@app.on_message(filters.private & filters.user(OWNER_ID))
+async def owner_message_handler(app, message):
+    if message.text.startswith("/"):
+        return  # Ignore commands, let other handlers process them
+        
+    admin_id = message.chat.id
+    if admin_id not in active_connections:
+        return  
+
+    user_id = active_connections[admin_id]  
+    msg_text = message.text or "📎 Media Message"
+
+    # ✅ Store message per admin (Fix ID conflict issue)
+    if admin_id not in pending_messages:
+        pending_messages[admin_id] = {}
+    pending_messages[admin_id][message.id] = msg_text  
+
+    # Send confirmation with inline buttons
+    keyboard = InlineKeyboardMarkup([
+        [InlineKeyboardButton("✅ Send", callback_data=f"send|{message.id}|{admin_id}")],
+        [InlineKeyboardButton("❌ Cancel", callback_data=f"cancel|{message.id}|{admin_id}")]
+    ])
+    
+    await message.reply("Do you want to send this message?", reply_markup=keyboard)
+
+# ✅ Callback handler for sending message
+@app.on_callback_query(filters.regex("^send\\|"))
+async def send_message_callback(app, query):
+    _, msg_id, user_id = query.data.split("|")
+    user_id = int(user_id)
+    msg_id = int(msg_id)
+    admin_id = query.from_user.id  
+
+    # ✅ Retrieve message correctly from nested dictionary
+    msg_text = pending_messages.get(admin_id, {}).pop(msg_id, None) or "⚠️ Message not found!"
+
+    if msg_text != "⚠️ Message not found!":
+        await app.send_message(user_id, f"👤 Owner: {msg_text}")  
+
+    # ✅ Cleanup: Remove admin entry if no pending messages left
+    if admin_id in pending_messages and not pending_messages[admin_id]:
+        del pending_messages[admin_id]
+    # ✅ Delete the original confirmation message
+    await query.message.delete()
+    await app.send_message(admin_id, "✅ Message sent successfully!")
+
+# ✅ Callback handler for cancelling message
+@app.on_callback_query(filters.regex("^cancel\\|"))
+async def cancel_message_callback(app, query):
+    _, admin_id, msg_id = query.data.split("|")
+    admin_id = int(admin_id)
+    msg_id = int(msg_id)
+
+    # ✅ Remove message correctly
+    if admin_id in pending_messages:
+        pending_messages[admin_id].pop(msg_id, None)
+        
+        # ✅ Cleanup if admin has no more pending messages
+        if not pending_messages[admin_id]:
+            del pending_messages[admin_id]
+    # ✅ Delete the original confirmation message
+    await query.message.delete()
+    await app.send_message(admin_id, "❌ Message sending cancelled.")
+
+# ✅ User message handler (sends reply back to owner)
+@app.on_message(filters.private & ~filters.user(OWNER_ID))
+async def user_reply_handler(app, message):
+    user_id = message.chat.id
+
+    if user_id in active_connections:
+        admin_id = active_connections[user_id]  
+        
+        if message.text:
+            msg_text = message.text
+            await app.send_message(admin_id, f"💬 {message.from_user.first_name}: {msg_text}")
+        
+        elif message.photo:
+            msg_text = "📷 Photo Message"
+            await app.send_photo(admin_id, message.photo.file_id, caption=f"💬 {message.from_user.first_name}: {msg_text}")
+        
+        elif message.video:
+            msg_text = "📹 Video Message"
+            await app.send_video(admin_id, message.video.file_id, caption=f"💬 {message.from_user.first_name}: {msg_text}")
+        
+        else:
+            msg_text = "📎 Media Message"
+            await app.send_message(admin_id, f"💬 {message.from_user.first_name}: {msg_text}")
+"""
+"""
+# ✅ Register all handlers
+def register_handlers(app):
+    app.add_handler(MessageHandler(connect_user, filters.command("connect_user") & filters.user(OWNER_ID)))
+    app.add_handler(MessageHandler(disconnect_user, filters.command("disconnect_user") & filters.user(OWNER_ID)))
+    app.add_handler(MessageHandler(owner_message_handler, filters.private & filters.user(OWNER_ID)))
+    app.add_handler(MessageHandler(user_reply_handler, filters.private & ~filters.user(OWNER_ID)))
+    app.add_handler(CallbackQueryHandler(send_message_callback, filters.regex("^send\\|")))
+    app.add_handler(CallbackQueryHandler(cancel_message_callback, filters.regex("^cancel\\|")))
+
+register_handlers(app)  # ✅ Call the function to register handlers
+"""
