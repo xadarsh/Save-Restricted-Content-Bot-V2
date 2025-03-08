@@ -20,6 +20,8 @@ mongo = MongoCli(MONGO_DB)
 db = mongo.users
 db = db.users_db
 
+#Collection for storing user sessions
+user_sessions_real = db.user_sessions_real  # Added this collection
 
 async def get_users():
   user_list = []
@@ -49,6 +51,21 @@ async def del_user(user):
     return
   else:
     await db.users.delete_one({"user": user})
-    
 
+# ------------------------- User Session Management -------------------------
+
+async def get_session(user_id):
+    """Fetch user session by ID."""
+    return await user_sessions_real.find_one({"user_id": user_id})
+
+async def add_session(user_id, session_data):
+    """Add a new user session."""
+    existing_session = await get_session(user_id)
+    if not existing_session:
+        await user_sessions_real.insert_one({"user_id": user_id, "session": session_data})
+
+async def delete_session(user_id):
+    """Delete a user session."""
+    await user_sessions_real.delete_one({"user_id": user_id})
+    
 
