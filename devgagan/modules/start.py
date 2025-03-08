@@ -32,29 +32,17 @@ async def set(_, message):
      
     await app.set_bot_commands([
         BotCommand("start", "🚀 Start the bot"),
-        BotCommand("batch", "🫠 Extract in bulk"),
         BotCommand("login", "🔑 Get into the bot"),
         BotCommand("logout", "🚪 Get out of the bot"),
-        BotCommand("token", "🎲 Get 3 hours free access"),
-        BotCommand("adl", "👻 Download audio from 30+ sites"),
-        BotCommand("dl", "💀 Download videos from 30+ sites"),
-        BotCommand("freez", "🧊 Remove all expired user"),
-        BotCommand("pay", "₹ Pay now to get subscription"),
-        BotCommand("status", "⟳ Refresh Payment status"),
-        BotCommand("transfer", "💘 Gift premium to others"),
+        BotCommand("batch", "🫠 Extract in bulk"),
+        BotCommand("cancel", "🚫 Cancel batch process"),
         BotCommand("myplan", "⌛ Get your plan details"),
-        BotCommand("add", "➕ Add user to premium"),
-        BotCommand("rem", "➖ Remove from premium"),
-        BotCommand("session", "🧵 Generate Pyrogramv2 session"),
+        BotCommand("transfer", "💘 Gift premium to others"),
         BotCommand("settings", "⚙️ Personalize things"),
-        BotCommand("stats", "📊 Get stats of the bot"),
-        BotCommand("plan", "🗓️ Check our premium plans"),
-        BotCommand("terms", "🥺 Terms and conditions"),
         BotCommand("speedtest", "🚅 Speed of server"),
-        BotCommand("lock", "🔒 Protect channel from extraction"),
-        BotCommand("gcast", "⚡ Broadcast message to bot users"),
         BotCommand("help", "❓ If you're a noob, still!"),
-        BotCommand("cancel", "🚫 Cancel batch process")
+        BotCommand("terms", "🥺 Terms and conditions"),
+        BotCommand("admin_commands_list", "📜 List of admin commands")
     ])
  
     await message.reply("✅ Commands configured successfully!")
@@ -109,38 +97,12 @@ help_pages = [
         "> 4. REPLACEWORDS : Can be used for words in deleted set via REMOVE WORDS\n"
         "> 5. RESET : To set the things back to default\n\n"
         "> You can set CUSTOM THUMBNAIL, PDF WATERMARK, VIDEO WATERMARK, SESSION-based login, etc. from settings\n\n"
-        "**__Powered by Team SPY__**"
+        "**__Powered by Adarsh__**"
     )
 ]
  
  
-async def send_or_edit_help_page(_, message, page_number):
-    if page_number < 0 or page_number >= len(help_pages):
-        return
- 
-     
-    prev_button = InlineKeyboardButton("◀️ Previous", callback_data=f"help_prev_{page_number}")
-    next_button = InlineKeyboardButton("Next ▶️", callback_data=f"help_next_{page_number}")
- 
-     
-    buttons = []
-    if page_number > 0:
-        buttons.append(prev_button)
-    if page_number < len(help_pages) - 1:
-        buttons.append(next_button)
- 
-     
-    keyboard = InlineKeyboardMarkup([buttons])
- 
-     
-    await message.delete()
- 
-     
-    await message.reply(
-        help_pages[page_number],
-        reply_markup=keyboard
-    )
- 
+
  
 @app.on_message(filters.command("help"))
 async def help(client, message):
@@ -150,24 +112,50 @@ async def help(client, message):
  
      
     await send_or_edit_help_page(client, message, 0)
- 
- 
+
+
 @app.on_callback_query(filters.regex(r"help_(prev|next)_(\d+)"))
 async def on_help_navigation(client, callback_query):
     action, page_number = callback_query.data.split("_")[1], int(callback_query.data.split("_")[2])
- 
+
     if action == "prev":
         page_number -= 1
     elif action == "next":
         page_number += 1
- 
-     
+
     await send_or_edit_help_page(client, callback_query.message, page_number)
- 
-     
     await callback_query.answer()
+
+
+async def send_or_edit_help_page(_, message, page_number):
+    if page_number < 0 or page_number >= len(help_pages):
+        return
+
+    if message is None:
+        return  # Prevents AttributeError if message is None
+
+    prev_button = InlineKeyboardButton("◀️ Previous", callback_data=f"help_prev_{page_number}")
+    next_button = InlineKeyboardButton("Next ▶️", callback_data=f"help_next_{page_number}")
+
+    buttons = []
+    if page_number > 0:
+        buttons.append(prev_button)
+    if page_number < len(help_pages) - 1:
+        buttons.append(next_button)
+
+    keyboard = InlineKeyboardMarkup([buttons])
+
+    try:
+        await message.delete()
+    except Exception as e:
+        print(f"Failed to delete message: {e}")  # Logs the error if message deletion fails
+
+    await message.reply(
+        help_pages[page_number],
+        reply_markup=keyboard
+    )
  
- 
+
 from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
  
@@ -183,7 +171,7 @@ async def terms(client, message):
     buttons = InlineKeyboardMarkup(
         [
             [InlineKeyboardButton("📋 See Plans", callback_data="see_plan")],
-            [InlineKeyboardButton("💬 Contact Now", url="https://t.me/kingofpatal")],
+            [InlineKeyboardButton("💬 Contact Now", url="https://t.me/Contact_xbot")],
         ]
     )
     await message.reply_text(terms_text, reply_markup=buttons)
@@ -192,7 +180,7 @@ async def terms(client, message):
 @app.on_message(filters.command("plan") & filters.private)
 async def plan(client, message):
     plan_text = (
-        "> 💰 **Premium Price**:\n\n Starting from $2 or 200 INR accepted via **__Amazon Gift Card__** (terms and conditions apply).\n"
+        "> 💰 **Premium Price**:\n\n Starting from 39 INR accepted via **__UPI__** (terms and conditions apply).\n"
         "📥 **Download Limit**: Users can download up to 100,000 files in a single batch command.\n"
         "🛑 **Batch**: You will get two modes /bulk and /batch.\n"
         "   - Users are advised to wait for the process to automatically cancel before proceeding with any downloads or uploads.\n\n"
@@ -202,7 +190,7 @@ async def plan(client, message):
     buttons = InlineKeyboardMarkup(
         [
             [InlineKeyboardButton("📜 See Terms", callback_data="see_terms")],
-            [InlineKeyboardButton("💬 Contact Now", url="https://t.me/kingofpatal")],
+            [InlineKeyboardButton("💬 Contact Now", url="https://t.me/Contact_xbot")],
         ]
     )
     await message.reply_text(plan_text, reply_markup=buttons)
@@ -211,7 +199,7 @@ async def plan(client, message):
 @app.on_callback_query(filters.regex("see_plan"))
 async def see_plan(client, callback_query):
     plan_text = (
-        "> 💰**Premium Price**\n\n Starting from $2 or 200 INR accepted via **__Amazon Gift Card__** (terms and conditions apply).\n"
+        "> 💰**Premium Price**\n\n Starting from 39 INR accepted via **__UPI__** (terms and conditions apply).\n"
         "📥 **Download Limit**: Users can download up to 100,000 files in a single batch command.\n"
         "🛑 **Batch**: You will get two modes /bulk and /batch.\n"
         "   - Users are advised to wait for the process to automatically cancel before proceeding with any downloads or uploads.\n\n"
@@ -221,7 +209,7 @@ async def see_plan(client, callback_query):
     buttons = InlineKeyboardMarkup(
         [
             [InlineKeyboardButton("📜 See Terms", callback_data="see_terms")],
-            [InlineKeyboardButton("💬 Contact Now", url="https://t.me/kingofpatal")],
+            [InlineKeyboardButton("💬 Contact Now", url="https://t.me/Contact_xbot")],
         ]
     )
     await callback_query.message.edit_text(plan_text, reply_markup=buttons)
@@ -239,7 +227,7 @@ async def see_terms(client, callback_query):
     buttons = InlineKeyboardMarkup(
         [
             [InlineKeyboardButton("📋 See Plans", callback_data="see_plan")],
-            [InlineKeyboardButton("💬 Contact Now", url="https://t.me/kingofpatal")],
+            [InlineKeyboardButton("💬 Contact Now", url="https://t.me/Contact_xbot")],
         ]
     )
     await callback_query.message.edit_text(terms_text, reply_markup=buttons)
