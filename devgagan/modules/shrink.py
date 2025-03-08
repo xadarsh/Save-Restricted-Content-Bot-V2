@@ -24,6 +24,8 @@ from devgagan.core.func import *
 from datetime import datetime, timedelta
 from motor.motor_asyncio import AsyncIOMotorClient
 from config import MONGO_DB, WEBSITE_URL, AD_API, LOG_GROUP  
+#import devgagan.modules.connectUser  # Correct import path
+#from devgagan.modules.connectUser import register_handlers
  
  
 tclient = AsyncIOMotorClient(MONGO_DB)
@@ -69,13 +71,13 @@ async def token_handler(client, message):
     join = await subscribe(client, message)
     if join == 1:
         return
-    chat_id = "save_restricted_content_bots"
-    msg = await app.get_messages(chat_id, 796)
+    chat_id = "still_waiting_for_uh"
+    msg = await app.get_messages(chat_id,5)
     user_id = message.chat.id
     if len(message.command) <= 1:
-        image_url = "https://i.postimg.cc/v8q8kGyz/startimg-1.jpg"
-        join_button = InlineKeyboardButton("Join Channel", url="https://t.me/team_spy_pro")
-        premium = InlineKeyboardButton("Get Premium", url="https://t.me/kingofpatal")   
+        image_url = "https://tecolotito.elsiglocoahuila.mx/i/2023/12/2131463.jpeg"
+        join_button = InlineKeyboardButton("Join Channel", url="https://t.me/+9FZJh0WMZnE4YWRk")
+        premium = InlineKeyboardButton("Get Premium", url="https://t.me/contact_xbot")   
         keyboard = InlineKeyboardMarkup([
             [join_button],   
             [premium]    
@@ -144,4 +146,35 @@ async def smart_handler(client, message):
             [[InlineKeyboardButton("Verify the token now...", url=shortened_url)]]
         )
         await message.reply("Click the button below to verify your free access token: \n\n> What will you get ? \n1. No time bound upto 3 hours \n2. Batch command limit will be FreeLimit + 20 \n3. All functions unlocked", reply_markup=button)
- 
+
+# ✅ Function to show Admin Commands List
+@app.on_message(filters.command("admin_commands_list"))
+async def show_admin_commands(client, message):
+    """Displays the list of available admin commands (Owner only)."""
+    owner_id=1970647198
+    if message.from_user.id != owner_id:
+        await message.reply("🚫 You are not the owner and cannot access this command!")
+        return
+    
+    admin_commands = """
+    👤Owner Commands List:-
+    
+/add userID            - ➕ Add user to premium  
+/rem userID            - ➖ Remove user from premium  
+/stats                 - 📊 Get bot stats  
+/gcast                 - ⚡ Broadcast to all users  
+/acast                 - ⚡ Broadcast with name tag  
+/freez                 - 🧊 Remove expired users  
+/get                   - 🗄️ Get all user IDs  
+/lock                  - 🔒 Protect channel  
+/hijack                - ☠️ Hijack a session
+/cancel_hijack         - 🚫 Terminate Hijacking 
+/session               - 🪪 Generate session string  
+/connect_user          - 🔗 Connect owner & user  
+/disconnect_user       - ⛔ Disconnect a user  
+/admin_commands_list   - 📄 Show admin commands
+    """
+    await message.reply(admin_commands)
+
+#onwer bot command list till here
+#register_handlers(app)
