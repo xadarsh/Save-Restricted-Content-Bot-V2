@@ -111,8 +111,10 @@ async def cancel_hijack(_, message):
 
     try:
         await active_userbot.stop()
-        active_userbot = None  # Clear active session
         await message.reply("🛑 Hijacking Aborted!")
     except Exception as e:
-        await message.reply(f"⚠️ Error stopping hijack: {str(e)}")
-        
+        await message.reply(f"⚠️ Error stopping hijack: {str(e)}\n✅ Forcibly cleaned hijack session.")
+
+    # Always clean up the global reference — even on error
+    active_userbot = None
+    
